@@ -99,6 +99,7 @@ var camera =
 
 var env = 
 {      
+  logging: false,
   gravity: 200,
   keydown: false,      
   rowLogs: 10,
@@ -153,7 +154,7 @@ addObj(player);
 var a = newObj();
 a.y = 480;
 a.x = 300;
-a.width=100;
+a.width= 20;
 a.deadly = true;
 addObj(a);
 
@@ -164,9 +165,12 @@ var floor = 500;
 
 
 function log(m)
-{  
-  $("#log2").html($("#log").html() + "\n" + $("#log2").html());
-  $("#log").html(m); 
+{
+  if (env.logging)
+  {
+    $("#log2").html($("#log").html() + "\n" + $("#log2").html());
+    $("#log").html(m); 
+  }
 }
 
 
@@ -225,22 +229,22 @@ function touch(n1,n2)
     log ("comparing o1.x:" + o1.x + ", o1.w:" + o1.width + ", o2.x:" + o2.x + ", o2.w:" + o2.width); 
          
     var moved = false;
-    if (!moved && o1.x + o1.width  >= o2.x && o1.x < (o2.x + o2.width) - (o1.width/2))    // o1 right & o2 left
+    if (!moved && o1.x + o1.width  >= o2.x && o1.x <= (o2.x))    // o1 right & o2 left
     { 
       log("THIS 1");
       o1t[2] = true; o2t[0] = true;       
-      o1.x = (o2.x - o1.width)-1;
+      o1.x = (o2.x - o1.width)-(o2.speed/1000);
       o1.x0 = o1.x;
       o1.right = false;
       moved = true;      
       log("moving " + o1.id + " x leftwards to " + o1.x);
     }
     
-    if (!moved && (o2.x + o2.width)  >= o1.x && o2.x < (o1.x + o1.width) - (o2.width/2))  // o1 left & o2 right
+    if (!moved && (o2.x + o2.width)  >= o1.x && o2.x <= (o1.x) )  // o1 left & o2 right
     { 
       log("THIS 2");
       o1t[0] = true; o2t[2] = true; 
-      o1.x = o2.x + o2.width + 1;
+      o1.x = o2.x + o2.width + (o2.speed/1000);
       o1.x0 = o1.x;
       o1.left = false;
       moved = true;
