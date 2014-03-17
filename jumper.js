@@ -2,6 +2,8 @@ var objects = new Array();
 
 var player = 
 {
+  id: "PLAYER",
+  deadly: false,
   x0: 0,
   y0: 400,
   x: 0,
@@ -108,6 +110,8 @@ function newObj()
 {
   var o = 
   {
+    id: "OBJECT" + objects.length,
+    deadly: false,
     height: 20,
     width: 20,
     x: 0,
@@ -142,6 +146,9 @@ function addObj(o)
 addObj(player);
 
 var a = newObj();
+a.y = 480;
+a.x = 300;
+a.deadly = true;
 addObj(a);
 
 
@@ -156,6 +163,47 @@ function log(m)
   $("#log").html(m); 
 }
 
+
+
+function checkTouching()
+{
+  for (var i1 = 0; i1 < objects.length; i1++)
+  {
+    for (var i2 = 0; i2 < objects.length; i2++)
+    {
+      if (i1 < i2)            //using strict less than so that only one touch is called.
+      {        
+        var o1 = objects[i1];
+        var o2 = objects[i2];
+               
+        if (    o1.x              <= (o2.x + o2.width)    // o1 left > o2 right
+            && (o1.x + o1.width)  >=  o2.x                // o1 right < o2 left
+            &&  o1.y              <= (o2.y + o2.height)   // o1 top > o2 bottom
+            && (o1.y + o1.height) >=  o2.y                // o1 bottom < o2 top
+            )
+            {       
+              touch(i1,i2);
+            }            
+      }    
+    } 
+  }
+}
+
+function touch(n1,n2)
+{
+  var o1 = objects[n1];
+  var o2 = objects[n2];
+  
+  log(o1.id + " and " + o2.id + " are touching");
+  
+  //Special touching situations
+  if (o1.id == "PLAYER" && o2.deadly == true)
+  {
+    //Player should die
+    log ("KILL PLAYER");
+  }
+  
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //Draw!
@@ -172,15 +220,16 @@ var renderplayer = function()
 
   camera.setPosition();
   gravity(end); 
-
+  checkTouching();
   showDebug();
 
   var c = document.getElementById("canvas");
   var context = c.getContext('2d');
   context.clearRect(0,0,canvas.width,canvas.height);
 
-  //Draw objects (including player)
-  
+
+
+  //Draw objects (including player)  
   for (var i = 0; i < objects.length; i++)
   {    
     var o = objects[i];    
@@ -190,14 +239,8 @@ var renderplayer = function()
     context.fill();  
   }
   
-
-
-  //context.beginPath();
-  //context.rect(player.x - camera.x, player.y - camera.y, player.width, player.height);
-  //context.fillStyle = '#000000';  
-  //context.fill();
-
-  //Draw floor
+  
+  //Draw floor (TEMPORARY)
   context.beginPath();
   context.moveTo(0, 500);
   context.lineTo(600, 500);
@@ -417,6 +460,14 @@ function showDebug()
   s += addRow("env.controlsLocked",env.controlsLocked);
   s += addRow("leftRightWait",leftRightWait);
   
+  for (var i = 0; i < objects.length ; i++)
+  {
+    var o = objects[i];
+    s += addRow("object " + i + ".x",o.x);
+    s += addRow("object " + i + ".width",o.width);
+    s += addRow("object " + i + ".y",o.y);
+    s += addRow("object " + i + ".height",o.height);
+  }
 
   s += "</table>";
 
