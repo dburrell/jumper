@@ -167,7 +167,7 @@ b.width= 80;
 b.height = 10;
 b.color = "#ccc";
 b.deadly = false;
-addObj(b);
+//addObj(b);
 
 var floor = 500;
 
