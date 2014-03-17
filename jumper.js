@@ -24,7 +24,7 @@ var player =
   maxJumps:2,
   
   jumping:false,      
-  jumpPower:500,
+  jumpPower:700,
   j0:800,
 
   touching: new Array(false,false,false,false) ,
@@ -161,13 +161,13 @@ addObj(a);
 
 //Add a platform
 var b = newObj();
-b.y = 460;
+b.y = 350;
 b.x = 400;
-b.width= 80;
-b.height = 10;
+b.width= 20;
+b.height = 50;
 b.color = "#ccc";
 b.deadly = false;
-//addObj(b);
+addObj(b);
 
 //Add a wall
 var c = newObj();
@@ -198,26 +198,29 @@ function checkTouching()
 {
   for (var i1 = 0; i1 < objects.length; i1++)
   {
+    var o1 = objects[i1];
+    o1.touching = new Array(false, false, false, false);
+  }
+
+  for (var i1 = 0; i1 < objects.length; i1++)
+  {
     for (var i2 = 0; i2 < objects.length; i2++)
     {
       if (i1 < i2)            //using strict less than so that only one touch is called.
       {        
         var o1 = objects[i1];
         var o2 = objects[i2];
+                       
+        var gap = 50;
                
-        if (    o1.x              <= (o2.x + o2.width)    // o1 left > o2 right
-            && (o1.x + o1.width)  >=  o2.x                // o1 right < o2 left
+        if (    o1.x              <= (o2.x + o2.width + gap)    // o1 left > o2 right
+            && (o1.x + o1.width)  >=  o2.x - gap                // o1 right < o2 left
             &&  o1.y              <= (o2.y + o2.height)   // o1 top > o2 bottom
             && (o1.y + o1.height) >=  o2.y                // o1 bottom < o2 top
             )
             {       
               touch(i1,i2);
             }  
-            else
-            {
-              o1.touching = new Array(false, false, false, false);
-              o2.touching = new Array(false, false, false, false);             
-            }          
       }    
     } 
   }
@@ -251,11 +254,11 @@ function touch(n1,n2)
     var o1t = new Array(false, false, false, false);
     var o2t = new Array(false, false, false, false);
          
-    log ("comparing o1.x:" + o1.x + ", o1.w:" + o1.width + ", o2.x:" + o2.x + ", o2.w:" + o2.width); 
+    //log ("comparing o1.x:" + o1.x + ", o1.w:" + o1.width + ", o2.x:" + o2.x + ", o2.w:" + o2.width); 
          
     var moved = false;
     if (!moved && o1.x + o1.width  >= o2.x && o1.x <= (o2.x))    // o1 right & o2 left
-    {       
+    {             
       o1.touching[2] = true;
       o2.touching[0] = true;
          
@@ -267,8 +270,7 @@ function touch(n1,n2)
     }
     
     if (!moved && (o2.x + o2.width)  >= o1.x && o2.x <= (o1.x) )  // o1 left & o2 right
-    { 
-      player.touching[0] = true;
+    {       
       o1.touching[0] = true;
       o2.touching[2] = true;
       
@@ -318,35 +320,14 @@ var renderplayer = function()
   var end = new Date().getTime();
   var xduration = (end - player.xstart)/1000;   //seconds since left/right pressed
   
+    
+  player.dx = 0;  
   
   checkTouching();
-  player.dx = 0;  
-
-  //if (player.right)&& player.touching[2] == false)  { player.dx = player.speed;}
-  if (player.right)
-  {
-    //log("touching: " + player.touching[2]);
-    if (player.touching[2] == true)
-    {
-    }
-    else
-    {
-      player.dx = player.speed;
-    }
-  }
-  //if (player.left  && player.touching[0] == false)  { player.dx = 0-player.speed;}
-  if (player.left)
-  {
-    if (player.touching[0] == true)
-    {
-    
-    }
-    else
-    {
-      player.dx = 0-player.speed;
-    }
-  }
   
+  //log("touching: " + player.touching[2]);
+  if (player.right && player.touching[2] == false)  { player.dx = player.speed;}
+  if (player.left  && player.touching[0] == false)  { player.dx = 0-player.speed;}    
   player.x = player.x0 + (xduration * player.dx);  
 
   checkTouching();
