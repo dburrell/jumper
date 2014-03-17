@@ -100,16 +100,15 @@ var camera =
 var env = 
 {      
   logging: false,
-  gravity: 200,
-  keydown: false,      
+  gravity: 200,  
   rowLogs: 10,
   controlsLocked: 0
 }
 
 
-/////////////////////////////////////////////////
-//Make a generic object (tree or enemy)
-/////////////////////////////////////////////////
+/////////////////////////////////////////////////////
+//Make a generic object (tree or enemy or whatever)
+/////////////////////////////////////////////////////
 function newObj()
 {
   var o = 
@@ -129,7 +128,7 @@ function newObj()
     endY: 0,
     endX: 0,
     speed: 700,
-    color: "#00F",
+    color: "#00F",  //default of blue
     touching: new Array(false,false,false,false) 
   }
   
@@ -206,7 +205,7 @@ function checkTouching()
             else
             {
               o1.touching = new Array(false, false, false, false);
-              o2.touching = new Array(false, false, false, false);
+              o2.touching = new Array(false, false, false, false);             
             }          
       }    
     } 
@@ -217,10 +216,11 @@ function touch(n1,n2)
 {
   var o1 = objects[n1];
   var o2 = objects[n2];
-  
+  var switched = false;
   if (objects[n1].hard > objects[n2].hard)
   {
     //o2 is the harder object (if any)    
+    switched = true;
     o1 = objects[n2];
     o2 = objects[n1];
   }
@@ -230,7 +230,8 @@ function touch(n1,n2)
   
   if (o1.hard > 0 && o2.hard > 0)
   {
-  log(o1.id + "(" + o1.hard +  ") and " + o2.id + "(" + o2.hard + ") are touching");
+    //log(o1.id + "(" + o1.hard +  ") and " + o2.id + "(" + o2.hard + ") are touching");
+    
     //left, down, right, up
     var o1t = new Array(false, false, false, false);
     var o2t = new Array(false, false, false, false);
@@ -240,40 +241,45 @@ function touch(n1,n2)
     var moved = false;
     if (!moved && o1.x + o1.width  >= o2.x && o1.x <= (o2.x))    // o1 right & o2 left
     {       
-      o1t[2] = true; o2t[0] = true;       
-      o1.x = (o2.x - o1.width)-(o2.speed/1000);
-      if (o1.right)
-      {
-        o1.xstart = new Date().getTime();
-        o1.x0 = o1.x;
-      }      
-      moved = true;      
-      //log("moving " + o1.id + " x leftwards to " + o1.x);
+      o1.touching[2] = true;
+      o2.touching[0] = true;
+      
+      o1.x = (o2.x - o1.width);
+      o1.x0 = o1.x;
+      o1.xstart = new Date().getTime();
+      moved = true;            
     }
     
     if (!moved && (o2.x + o2.width)  >= o1.x && o2.x <= (o1.x) )  // o1 left & o2 right
     { 
-      o1t[0] = true; o2t[2] = true; 
-      o1.x = o2.x + o2.width + (o2.speed/1000);
+      player.touching[0] = true;
+      o1.touching[0] = true;
+      o2.touching[2] = true;
+      
+      o1.x = o2.x + o2.width ;
       o1.x0 = o1.x;
-      if (o1.left)
-      {
-        o1.xstart = new Date().getTime();
-        o1.x0 = o1.x;
-      }      
-      moved = true;
-      //log("moving " + o1.id + " x rightwards to " + o1.x);
+      o1.xstart = new Date().getTime();      
+      moved = true;      
     }
     
     if (!moved && o1.y + o1.height  > o2.y && o1.y + o1.height < o2.y + o2.height)        // o1 bottom & o2 top
-    {o1t[1] = true; o2t[3] = true; }
+    {o1.touching[1] = true; o2.touching[3] = true;}
     
     if (!moved && o2.y + o2.height  > o1.y && o2.y + o2.height < o1.y + o1.height)        // o1 top & o2 bottom
-    {o1t[3] = true; o2t[1] = true; }
-     
-    o1.touching = o1t;
-    o2.touching = o2t;
+    {o1.touching[3] = true; o2.touching[1] = true; }
     
+    
+    //Write back to the objects array
+    if (switched)
+    {
+      objects[n1] = o2;
+      objects[n2] = o1;
+    }
+    else
+    {
+      objects[n1] = o1;
+      objects[n2] = o2;
+    }    
   }
   
   
@@ -298,15 +304,31 @@ var renderplayer = function()
   
   checkTouching();
   player.dx = 0;  
-  //if (player.right && !player.touching[2])  { player.dx = player.speed;}  
-  if (player.right)  
+
+  //if (player.right)&& player.touching[2] == false)  { player.dx = player.speed;}
+  if (player.right)
   {
-    if (player.touching[2])
-    { player.x0 = player.x; }
+    //log("touching: " + player.touching[2]);
+    if (player.touching[2] == true)
+    {
+    }
     else
-    { player.dx = player.speed; }  
+    {
+      player.dx = player.speed;
+    }
   }
-  if (player.left  && !player.touching[0])  { player.dx = 0-player.speed;}
+  //if (player.left  && player.touching[0] == false)  { player.dx = 0-player.speed;}
+  if (player.left)
+  {
+    if (player.touching[0] == true)
+    {
+    
+    }
+    else
+    {
+      player.dx = 0-player.speed;
+    }
+  }
   
   player.x = player.x0 + (xduration * player.dx);  
 
