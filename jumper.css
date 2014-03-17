@@ -1,0 +1,18 @@
+#canvas {
+  background-color: #500; }
+
+#debug {
+  font-family: helvetica;
+  font-size: 10px; }
+
+#log {
+  color: black;
+  font-weight: bold;
+  font-family: helvetica;
+  font-size: 10px; }
+
+#log2 {
+  color: gray;
+  font-family: helvetica;
+  font-size: 10px;
+  height: 200px; }
