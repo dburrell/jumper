@@ -99,6 +99,7 @@ var camera =
 
 var env = 
 {      
+  debugging: false,
   logging: false,
   gravity: 200,  
   rowLogs: 10,
@@ -168,6 +169,16 @@ b.color = "#ccc";
 b.deadly = false;
 //addObj(b);
 
+//Add a wall
+var c = newObj();
+c.y = 0;
+c.x = 600;
+c.width= 10;
+c.height = 500;
+addObj(c);
+
+
+
 var floor = 500;
 
 
@@ -225,7 +236,11 @@ function touch(n1,n2)
     o2 = objects[n1];
   }
   
-  
+  var playerPresent = false;
+  if (o1.id == "PLAYER" || o2.id == "PLAYER")
+  {
+    playerPresent = true;
+  }
   
   
   if (o1.hard > 0 && o2.hard > 0)
@@ -243,11 +258,12 @@ function touch(n1,n2)
     {       
       o1.touching[2] = true;
       o2.touching[0] = true;
-      
+         
       o1.x = (o2.x - o1.width);
       o1.x0 = o1.x;
       o1.xstart = new Date().getTime();
       moved = true;            
+      if (playerPresent) {player.jumpCount = 1;}
     }
     
     if (!moved && (o2.x + o2.width)  >= o1.x && o2.x <= (o1.x) )  // o1 left & o2 right
@@ -260,6 +276,7 @@ function touch(n1,n2)
       o1.x0 = o1.x;
       o1.xstart = new Date().getTime();      
       moved = true;      
+      if (playerPresent) {player.jumpCount = 1;}
     }
     
     if (!moved && o1.y + o1.height  > o2.y && o1.y + o1.height < o2.y + o2.height)        // o1 bottom & o2 top
@@ -549,45 +566,47 @@ function doKeyUp(e)
 /////////////////////////////////////////////////////////////
 function showDebug()
 {
-
+  
   function addRow(header,value)
   {
     s ="<tr><td><b>" + header + ":</b> </td><td>" + value + "</td></tr>"; 
     return s;
   }
 
-  s = "<table cellpadding=0 cellspacing=0>";
-  s += addRow("x",player.x);
-  s += addRow("y",player.y);
-  s += addRow("left",player.left);
-  s += addRow("right",player.right);
-  s += addRow("gravity",env.gravity);
-  s += addRow("jumping",player.jumping);
-  s += addRow("jumpCount",player.jumpCount);
-  s += addRow("falling",player.falling);
-  s += addRow("jstart",player.jstart);
-  s += addRow("camera.y",camera.y);
-  s += addRow("camera.x",camera.x);
-  s += addRow("camera.y0",camera.y0);
-  s += addRow("camera.x0",camera.x0);
-  s += addRow("camera.frac",camera.getFrac());
-  s += addRow("camera.moving",camera.moving);
-  s += addRow("env.controlsLocked",env.controlsLocked);
-  s += addRow("leftRightWait",leftRightWait);
-  
-  for (var i = 0; i < objects.length ; i++)
+  if (env.debugging)
   {
-    var o = objects[i];
-    s += addRow("object " + i + " touching left", o.touching[0]);
-    s += addRow("object " + i + " touching bottom",o.touching[1]);
-    s += addRow("object " + i + " touching right",o.touching[2]);
-    s += addRow("object " + i + " touching top",o.touching[3]);
+    s = "<table cellpadding=0 cellspacing=0>";
+    s += addRow("x",player.x);
+    s += addRow("y",player.y);
+    s += addRow("left",player.left);
+    s += addRow("right",player.right);
+    s += addRow("gravity",env.gravity);
+    s += addRow("jumping",player.jumping);
+    s += addRow("jumpCount",player.jumpCount);
+    s += addRow("falling",player.falling);
+    s += addRow("jstart",player.jstart);
+    s += addRow("camera.y",camera.y);
+    s += addRow("camera.x",camera.x);
+    s += addRow("camera.y0",camera.y0);
+    s += addRow("camera.x0",camera.x0);
+    s += addRow("camera.frac",camera.getFrac());
+    s += addRow("camera.moving",camera.moving);
+    s += addRow("env.controlsLocked",env.controlsLocked);
+    s += addRow("leftRightWait",leftRightWait);
+    
+    for (var i = 0; i < objects.length ; i++)
+    {
+      var o = objects[i];
+      s += addRow("object " + i + " touching left", o.touching[0]);
+      s += addRow("object " + i + " touching bottom",o.touching[1]);
+      s += addRow("object " + i + " touching right",o.touching[2]);
+      s += addRow("object " + i + " touching top",o.touching[3]);
+    }
+
+    s += "</table>";
+
+    $("#debug").html(s);
   }
-
-  s += "</table>";
-
-  $("#debug").html(s);
-
 }
 
 
