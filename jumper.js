@@ -4,6 +4,7 @@ var player =
 {
   id: "PLAYER",
   deadly: false,
+  hasMass: true,
   x0: 0,
   y0: 400,
   x: 0,
@@ -112,6 +113,7 @@ function newObj()
   {
     id: "OBJECT" + objects.length,
     deadly: false,
+    hasMass: true,
     height: 20,
     width: 20,
     x: 0,
@@ -145,6 +147,7 @@ function addObj(o)
 //Add the player
 addObj(player);
 
+//Add a random object
 var a = newObj();
 a.y = 480;
 a.x = 300;
@@ -289,15 +292,12 @@ function gravity(end)
     dy += duration * env.gravity;    
   }  
 
-
   player.y = player.y0 + dy;      
   if (player.y + player.height > floor)
   {
     player.y = floor - player.height;
     stopJumping();
   }  
-
-
 
 }
 
