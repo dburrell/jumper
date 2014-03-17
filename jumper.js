@@ -5,6 +5,7 @@ var player =
   id: "PLAYER",
   deadly: false,
   hasMass: true,
+  hard: 1,
   x0: 0,
   y0: 400,
   x: 0,
@@ -21,11 +22,12 @@ var player =
 
   jumpCount:0,
   maxJumps:2,
+  
   jumping:false,      
   jumpPower:500,
   j0:800,
 
-  touchingWall:false,
+  touching: new Array(false,false,false,false) ,
 
   falling:true,
 
@@ -114,6 +116,7 @@ function newObj()
     id: "OBJECT" + objects.length,
     deadly: false,
     hasMass: true,
+    hard: 2,
     height: 20,
     width: 20,
     x: 0,
@@ -127,7 +130,8 @@ function newObj()
     endY: 0,
     endX: 0,
     speed: 700,
-    color: "#00F"
+    color: "#00F",
+    touching: new Array(false,false,false,false) 
   }
   
   return o;
@@ -186,7 +190,12 @@ function checkTouching()
             )
             {       
               touch(i1,i2);
-            }            
+            }  
+            else
+            {
+              o1.touching = new Array(false, false, false, false);
+              o2.touching = new Array(false, false, false, false);
+            }          
       }    
     } 
   }
@@ -197,7 +206,47 @@ function touch(n1,n2)
   var o1 = objects[n1];
   var o2 = objects[n2];
   
+  if (objects[n1].hard > objects[n2].hard)
+  {
+    //o2 is the harder object (if any)
+    log("switching");
+    o1 = objects[n2];
+    o2 = objects[n1];
+  }
+  
   log(o1.id + " and " + o2.id + " are touching");
+  
+  
+  if (o1.hard > 0 && o2.hard > 0)
+  {
+    //left, down, right, up
+    var o1t = new Array(false, false, false, false);
+    var o2t = new Array(false, false, false, false);
+         
+    if (o1.x + o1.width  > o2.x && o1.x + o1.width < o2.x + o2.width)         // o1 right & o2 left
+    { o1t[2] = true; o2t[0] = true;       
+      o1.x = o2.x - o1.width;
+      o1.x0 = o1.x;
+      o1.right = false;}
+    
+    if (o2.x + o2.width  > o1.x && o2.x + o2.width < o1.x + o1.width)         // o1 left & o2 right
+    {o1t[0] = true; o2t[2] = true; 
+      o1.x = o2.x + o2.width;
+      o1.x0 = o1.x;
+      o1.left = false;}
+    
+    if (o1.y + o1.height  > o2.y && o1.y + o1.height < o2.y + o2.height)      // o1 bottom & o2 top
+    {o1t[1] = true; o2t[3] = true; }
+    
+    if (o2.y + o2.height  > o1.y && o2.y + o2.height < o1.y + o1.height)      // o1 top & o2 bottom
+    {o1t[3] = true; o2t[1] = true; }
+     
+    o1.touching = o1t;
+    o2.touching = o2t;
+    
+  }
+  
+  
   
   //Special touching situations
   if (o1.id == "PLAYER" && o2.deadly == true)
@@ -215,15 +264,26 @@ var renderplayer = function()
 {
   var end = new Date().getTime();
   var xduration = (end - player.xstart)/1000;   //seconds since left/right pressed
-
+  
+  
+  checkTouching();
   player.dx = 0;  
-  if (player.right) { player.dx = player.speed;}  
-  if (player.left)  { player.dx = 0-player.speed;}
+  //if (player.right && !player.touching[2])  { player.dx = player.speed;}  
+  if (player.right)  
+  {
+    if (player.touching[2])
+    { player.x0 = player.x; }
+    else
+    { player.dx = player.speed; }  
+  }
+  if (player.left  && !player.touching[0])  { player.dx = 0-player.speed;}
   player.x = player.x0 + (xduration * player.dx);  
+
+checkTouching();
 
   camera.setPosition();
   gravity(end); 
-  checkTouching();
+  
   showDebug();
 
   var c = document.getElementById("canvas");
@@ -274,7 +334,7 @@ function gravity(end)
 
   var dy = 0;
 
-  //DY adjustments from jumping
+  //DY adjustments from jumpintg
   if (player.jumping)
   { 
     var jumpTime = 0.25;
@@ -298,6 +358,8 @@ function gravity(end)
     player.y = floor - player.height;
     stopJumping();
   }  
+
+
 
 }
 
@@ -463,10 +525,10 @@ function showDebug()
   for (var i = 0; i < objects.length ; i++)
   {
     var o = objects[i];
-    s += addRow("object " + i + ".x",o.x);
-    s += addRow("object " + i + ".width",o.width);
-    s += addRow("object " + i + ".y",o.y);
-    s += addRow("object " + i + ".height",o.height);
+    s += addRow("object " + i + " touching left", o.touching[0]);
+    s += addRow("object " + i + " touching bottom",o.touching[1]);
+    s += addRow("object " + i + " touching right",o.touching[2]);
+    s += addRow("object " + i + " touching top",o.touching[3]);
   }
 
   s += "</table>";
