@@ -5,7 +5,7 @@ var player =
   id: "PLAYER",
   deadly: false,
   hasMass: true,
-  hard: 1,
+  hard: 3,
   x0: 0,
   y0: 400,
   x: 0,
@@ -119,14 +119,12 @@ function newObj()
     hard: 2,
     height: 20,
     width: 20,
+    left: 0,
+    right: 0,
     x: 0,
     y: 0,
     y0: 0,
-    x0: 0,
-    y0: 0,      
-    x0: 0,
-    y: 0,
-    x: 0,
+    x0: 0,    
     endY: 0,
     endX: 0,
     speed: 700,
@@ -155,6 +153,7 @@ addObj(player);
 var a = newObj();
 a.y = 480;
 a.x = 300;
+a.width=100;
 a.deadly = true;
 addObj(a);
 
@@ -208,37 +207,50 @@ function touch(n1,n2)
   
   if (objects[n1].hard > objects[n2].hard)
   {
-    //o2 is the harder object (if any)
-    log("switching");
+    //o2 is the harder object (if any)    
     o1 = objects[n2];
     o2 = objects[n1];
   }
   
-  log(o1.id + " and " + o2.id + " are touching");
+  
   
   
   if (o1.hard > 0 && o2.hard > 0)
   {
+  log(o1.id + "(" + o1.hard +  ") and " + o2.id + "(" + o2.hard + ") are touching");
     //left, down, right, up
     var o1t = new Array(false, false, false, false);
     var o2t = new Array(false, false, false, false);
          
-    if (o1.x + o1.width  > o2.x && o1.x + o1.width < o2.x + o2.width)         // o1 right & o2 left
-    { o1t[2] = true; o2t[0] = true;       
-      o1.x = o2.x - o1.width;
+    log ("comparing o1.x:" + o1.x + ", o1.w:" + o1.width + ", o2.x:" + o2.x + ", o2.w:" + o2.width); 
+         
+    var moved = false;
+    if (!moved && o1.x + o1.width  >= o2.x && o1.x < (o2.x + o2.width) - (o1.width/2))    // o1 right & o2 left
+    { 
+      log("THIS 1");
+      o1t[2] = true; o2t[0] = true;       
+      o1.x = (o2.x - o1.width)-1;
       o1.x0 = o1.x;
-      o1.right = false;}
+      o1.right = false;
+      moved = true;      
+      log("moving " + o1.id + " x leftwards to " + o1.x);
+    }
     
-    if (o2.x + o2.width  > o1.x && o2.x + o2.width < o1.x + o1.width)         // o1 left & o2 right
-    {o1t[0] = true; o2t[2] = true; 
-      o1.x = o2.x + o2.width;
+    if (!moved && (o2.x + o2.width)  >= o1.x && o2.x < (o1.x + o1.width) - (o2.width/2))  // o1 left & o2 right
+    { 
+      log("THIS 2");
+      o1t[0] = true; o2t[2] = true; 
+      o1.x = o2.x + o2.width + 1;
       o1.x0 = o1.x;
-      o1.left = false;}
+      o1.left = false;
+      moved = true;
+      log("moving " + o1.id + " x rightwards to " + o1.x);
+    }
     
-    if (o1.y + o1.height  > o2.y && o1.y + o1.height < o2.y + o2.height)      // o1 bottom & o2 top
+    if (!moved && o1.y + o1.height  > o2.y && o1.y + o1.height < o2.y + o2.height)        // o1 bottom & o2 top
     {o1t[1] = true; o2t[3] = true; }
     
-    if (o2.y + o2.height  > o1.y && o2.y + o2.height < o1.y + o1.height)      // o1 top & o2 bottom
+    if (!moved && o2.y + o2.height  > o1.y && o2.y + o2.height < o1.y + o1.height)        // o1 top & o2 bottom
     {o1t[3] = true; o2t[1] = true; }
      
     o1.touching = o1t;
@@ -277,9 +289,10 @@ var renderplayer = function()
     { player.dx = player.speed; }  
   }
   if (player.left  && !player.touching[0])  { player.dx = 0-player.speed;}
+  
   player.x = player.x0 + (xduration * player.dx);  
 
-checkTouching();
+  checkTouching();
 
   camera.setPosition();
   gravity(end); 
