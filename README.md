@@ -16,3 +16,9 @@ Can I take your code?
 ---------------
 I'm putting this all under GPL v3, so within the limitations of that, yes.
 
+
+Big important disclaimer
+------------------------
+I'm making this as a personal learning project and making ZERO profit/earnings/etc from it.
+
+__If you really want to show the love, then please [send a little cash to the RSPCA here](https://www.rspca.org.uk/donate/online).__
