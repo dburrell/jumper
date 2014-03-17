@@ -1,7 +1,7 @@
 #canvas {
   background-color: #500; }
 
-#debug {
+#debug table tbody tr td {
   font-family: helvetica;
   font-size: 10px; }
 
