@@ -5,7 +5,7 @@ var player =
   id: "PLAYER",
   deadly: false,
   hasMass: true,
-  hard: 3,
+  hard: 1,
   x0: 0,
   y0: 400,
   x: 0,
@@ -159,6 +159,15 @@ a.deadly = true;
 addObj(a);
 
 
+//Add a platform
+var b = newObj();
+b.y = 460;
+b.x = 400;
+b.width= 80;
+b.height = 10;
+b.color = "#ccc";
+b.deadly = false;
+addObj(b);
 
 var floor = 500;
 
@@ -230,25 +239,30 @@ function touch(n1,n2)
          
     var moved = false;
     if (!moved && o1.x + o1.width  >= o2.x && o1.x <= (o2.x))    // o1 right & o2 left
-    { 
-      log("THIS 1");
+    {       
       o1t[2] = true; o2t[0] = true;       
       o1.x = (o2.x - o1.width)-(o2.speed/1000);
-      o1.x0 = o1.x;
-      o1.right = false;
+      if (o1.right)
+      {
+        o1.xstart = new Date().getTime();
+        o1.x0 = o1.x;
+      }      
       moved = true;      
-      log("moving " + o1.id + " x leftwards to " + o1.x);
+      //log("moving " + o1.id + " x leftwards to " + o1.x);
     }
     
     if (!moved && (o2.x + o2.width)  >= o1.x && o2.x <= (o1.x) )  // o1 left & o2 right
     { 
-      log("THIS 2");
       o1t[0] = true; o2t[2] = true; 
       o1.x = o2.x + o2.width + (o2.speed/1000);
       o1.x0 = o1.x;
-      o1.left = false;
+      if (o1.left)
+      {
+        o1.xstart = new Date().getTime();
+        o1.x0 = o1.x;
+      }      
       moved = true;
-      log("moving " + o1.id + " x rightwards to " + o1.x);
+      //log("moving " + o1.id + " x rightwards to " + o1.x);
     }
     
     if (!moved && o1.y + o1.height  > o2.y && o1.y + o1.height < o2.y + o2.height)        // o1 bottom & o2 top
