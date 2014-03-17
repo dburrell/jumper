@@ -12,12 +12,6 @@ Why Javascript?
 It would hardly be the best language for a modern game if that was the goal, but it is very easy to get a project up and running quickly. The principle being demonstrated by this project is the input/calc/render loop which could then be used in a more suitable language in the long run.
 
 
-Is it true
----------------
-Well firstly, no, they're awesome. Secondly, this is really
-
-
-
 Can I take your code?
 ---------------
 I'm putting this all under GPL v3, so within the limitations of that, yes.
