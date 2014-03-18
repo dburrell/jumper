@@ -270,6 +270,18 @@ function touch(n1,n2)
     //log ("comparing o1.x:" + o1.x + ", o1.w:" + o1.width + ", o2.x:" + o2.x + ", o2.w:" + o2.width); 
          
     var moved = false;
+    
+    
+    
+    if (!moved && o1.y + o1.height  >= o2.y && o1.y < o2.y  )        // o1 bottom & o2 top
+    {
+      o1.touching[1] = true; 
+      o2.touching[3] = true;
+      o1.falling = false;
+      o1.y = o2.y - o1.height;
+      moved = true;
+    }
+    
     if (!moved && o1.x + o1.width  >= o2.x && o1.x <= (o2.x))    // o1 right & o2 left
     {             
       o1.touching[2] = true;
@@ -294,8 +306,6 @@ function touch(n1,n2)
       if (playerPresent) {player.jumpCount = 1;}
     }
     
-    if (!moved && o1.y + o1.height  > o2.y && o1.y + o1.height < o2.y + o2.height)        // o1 bottom & o2 top
-    {o1.touching[1] = true; o2.touching[3] = true;}
     
     if (!moved && o2.y + o2.height  > o1.y && o2.y + o2.height < o1.y + o1.height)        // o1 top & o2 bottom
     {o1.touching[3] = true; o2.touching[1] = true; }
@@ -385,22 +395,23 @@ function gravity(end)
   for (var i = 0; i < objects.length; i++)
   {
     var o = objects[i];
-    
-    
+        
     var fall = true;
+      
+    if (o.hasMass == false || o.touching[1] == true)
+    { 
+      o.falling = false; 
+      fall = false; 
+      stopJumping();       
+    }
     
-    if (o.hasMass == false)
-    { fall = false; }
-    
-    if ((o.y + o.height) >= floor)       //feet touching floor - don't fall
-    { o.falling = false; fall=false; }
+    //if ((o.y + o.height) >= floor)       //feet touching floor - don't fall
+    //{ o.falling = false; fall=false; }
 
 
     if (o.falling == false && fall)                   //Should be falling but isn't yet
     {
-      //START falling
-      if (i == 2) {log("starting falling");}
-    
+      //START falling    
       o.fstart = new Date().getTime();
       o.falling = true;
       o.y0 = o.y;          
@@ -430,16 +441,14 @@ function gravity(end)
 	dy += duration * env.gravity;    
       }  
 
-      if (i == 2)
-      {log("fstart: " + o.fstart);}
-      
       o.y = o.y0 + dy;      
-      if (o.y + o.height > floor)
-      {
-	log("flooring " + o.id);
-	o.y = floor - o.height;
-	stopJumping();
-      }  
+      
+      //if (o.y + o.height > floor)
+      //{
+	//log("flooring " + o.id);
+	//o.y = floor - o.height;
+	//stopJumping();
+      //}  
     }
     
     objects[i] = o;
