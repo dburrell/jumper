@@ -347,8 +347,7 @@ var renderplayer = function()
   player.dx = 0;  
   
   checkTouching();
-  
-  //log("touching: " + player.touching[2]);
+    
   if (player.right && player.touching[2] == false)  { player.dx = player.speed;}
   if (player.left  && player.touching[0] == false)  { player.dx = 0-player.speed;}    
   player.x = player.x0 + (xduration * player.dx);  
@@ -512,6 +511,7 @@ function doKeyDown(e)
           player.fstart = new Date().getTime();
           player.y0 = player.y;
           player.jumping = true;        
+	  player.falling = true;	
           renderplayer();        
         }
         break;
