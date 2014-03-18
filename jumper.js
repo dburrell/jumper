@@ -126,8 +126,10 @@ function newObj()
     y: 0,
     y0: 0,
     x0: 0,    
-    endY: 0,
-    endX: 0,
+    fstart: new Date().getTime(),    
+    falling: false,
+    //endY: 0,
+    //endX: 0,
     speed: 700,
     color: "#00F",  //default of blue
     touching: new Array(false,false,false,false) 
