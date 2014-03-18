@@ -99,8 +99,8 @@ var camera =
 
 var env = 
 {      
-  debugging: false,
-  logging: false,
+  debugging: true,
+  logging: true,
   gravity: 200,  
   rowLogs: 10,
   controlsLocked: 0
@@ -127,7 +127,7 @@ function newObj()
     y0: 0,
     x0: 0,    
     fstart: new Date().getTime(),    
-    falling: false,
+    falling: true,
     //endY: 0,
     //endX: 0,
     speed: 700,
@@ -178,6 +178,17 @@ c.x = 600;
 c.width= 10;
 c.height = 500;
 addObj(c);
+
+//Add a floor
+var d = newObj();
+d.y = 500;
+d.x = 0;
+d.width= 600;
+d.height = 10;
+d.hasMass = false;
+d.color = "#FA5";
+addObj(d);
+
 
 
 
@@ -363,57 +374,76 @@ var renderplayer = function()
   context.stroke();
 
   //Refresh
-  if (player.right || player.left || player.up || player.down || player.falling || player.jumping || camera.moving)
+  if (player.right || player.left || player.up || player.down || player.falling || player.jumping || camera.moving )
   { requestAnimationFrame(renderplayer); }
 }
 
 
 function gravity(end)
 {  
-
-  var fall = true;
-
-  if ((player.y + player.height) >= floor)       //feet touching floor - don't fall
-  { player.falling = false; fall=false; }
-
-
-  if (player.falling === false && fall)                   //Should be falling but isn't yet
+  
+  for (var i = 0; i < objects.length; i++)
   {
-    //START falling    
-    player.fstart = new Date().getTime();
-    player.falling = true;
-    player.y0 = player.y;    
+    var o = objects[i];
+    
+    
+    var fall = true;
+    
+    if (o.hasMass == false)
+    { fall = false; }
+    
+    if ((o.y + o.height) >= floor)       //feet touching floor - don't fall
+    { o.falling = false; fall=false; }
+
+
+    if (o.falling == false && fall)                   //Should be falling but isn't yet
+    {
+      //START falling
+      if (i == 2) {log("starting falling");}
+    
+      o.fstart = new Date().getTime();
+      o.falling = true;
+      o.y0 = o.y;          
+    }
+
+    var dy = 0;
+
+    if (o.id == "PLAYER")
+    {
+      //DY adjustments from jumpintg
+      if (player.jumping)
+      { 
+	var jumpTime = 0.25;
+	var duration = (end - player.jstart)/1000;
+	var frac = duration/(jumpTime*2);          // times 2 because half way gravity takes over
+	var jumpPower = player.j0* (1-frac);    
+	dy -= duration*(jumpPower);           
+      }
+    }
+
+    if (fall)
+    {
+      //DY adjustments from falling
+      if (o.falling)
+      {     
+	var duration = (end - o.fstart)/1000;    
+	dy += duration * env.gravity;    
+      }  
+
+      if (i == 2)
+      {log("fstart: " + o.fstart);}
+      
+      o.y = o.y0 + dy;      
+      if (o.y + o.height > floor)
+      {
+	log("flooring " + o.id);
+	o.y = floor - o.height;
+	stopJumping();
+      }  
+    }
+    
+    objects[i] = o;
   }
-
-  var dy = 0;
-
-  //DY adjustments from jumpintg
-  if (player.jumping)
-  { 
-    var jumpTime = 0.25;
-    var duration = (end - player.jstart)/1000;
-    var frac = duration/(jumpTime*2);          // times 2 because half way gravity takes over
-    var jumpPower = player.j0* (1-frac);    
-    dy -= duration*(jumpPower);           
-  }
-
-
-  //DY adjustments from falling
-  if (player.falling)
-  {     
-    var duration = (end - player.fstart)/1000;    
-    dy += duration * env.gravity;    
-  }  
-
-  player.y = player.y0 + dy;      
-  if (player.y + player.height > floor)
-  {
-    player.y = floor - player.height;
-    stopJumping();
-  }  
-
-
-
 }
 
 
@@ -580,10 +610,11 @@ function showDebug()
     for (var i = 0; i < objects.length ; i++)
     {
       var o = objects[i];
-      s += addRow("object " + i + " touching left", o.touching[0]);
-      s += addRow("object " + i + " touching bottom",o.touching[1]);
-      s += addRow("object " + i + " touching right",o.touching[2]);
-      s += addRow("object " + i + " touching top",o.touching[3]);
+      //s += addRow("object " + i + " touching left", o.touching[0]);
+      //s += addRow("object " + i + " touching bottom",o.touching[1]);
+      //s += addRow("object " + i + " touching right",o.touching[2]);
+      //s += addRow("object " + i + " touching top",o.touching[3]);
+      s += addRow("object.y: " + o.y);
     }
 
     s += "</table>";
