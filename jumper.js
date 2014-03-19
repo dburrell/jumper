@@ -16,7 +16,8 @@ var player =
   dx: 0,
   right: false,
   left: false,
-
+  up: false,
+  down: true,
   speed: 700,
   color:"#000",
 
@@ -99,11 +100,14 @@ var camera =
 
 var env = 
 {      
+  height: 600,
+  width: 800,
   debugging: true,
   logging: true,
   gravity: 200,  
   rowLogs: 10,
-  controlsLocked: 0
+  controlsLocked: 0,
+  somethingFalling: false
 }
 
 
@@ -122,6 +126,7 @@ function newObj()
     width: 20,
     left: 0,
     right: 0,
+    down: true,
     x: 0,
     y: 0,
     y0: 0,
@@ -163,21 +168,22 @@ addObj(a);
 
 //Add a platform
 var b = newObj();
-b.y = 350;
+b.y = 470;
 b.x = 400;
-b.width= 20;
-b.height = 50;
+b.width= 100;
+b.height = 70;
 b.color = "#ccc";
 b.deadly = false;
+b.hasMass = false;
 addObj(b);
 
 //Add a wall
 var c = newObj();
 c.y = 0;
 c.x = 600;
-c.width= 10;
-c.height = 500;
-addObj(c);
+c.width= 100;
+c.height = 50;
+//addObj(c);
 
 //Add a floor
 var d = newObj();
@@ -224,7 +230,7 @@ function checkTouching()
         var o1 = objects[i1];
         var o2 = objects[i2];
                        
-        var gap = 50;
+        var gap = 0;
                
         if (    o1.x              <= (o2.x + o2.width + gap)    // o1 left > o2 right
             && (o1.x + o1.width)  >=  o2.x - gap                // o1 right < o2 left
@@ -261,23 +267,19 @@ function touch(n1,n2)
   
   if (o1.hard > 0 && o2.hard > 0)
   {
-    //log(o1.id + "(" + o1.hard +  ") and " + o2.id + "(" + o2.hard + ") are touching");
-    
     //left, down, right, up
     var o1t = new Array(false, false, false, false);
     var o2t = new Array(false, false, false, false);
-         
-    //log ("comparing o1.x:" + o1.x + ", o1.w:" + o1.width + ", o2.x:" + o2.x + ", o2.w:" + o2.width); 
          
     var moved = false;
     
     
     
     if (!moved && o1.y + o1.height  >= o2.y && o1.y < o2.y  )        // o1 bottom & o2 top
-    {
+    {            
       o1.touching[1] = true; 
-      o2.touching[3] = true;
-      o1.falling = false;
+      o2.touching[3] = true;    
+      
       o1.y = o2.y - o1.height;
       moved = true;
     }
@@ -298,6 +300,7 @@ function touch(n1,n2)
     {       
       o1.touching[0] = true;
       o2.touching[2] = true;
+      
       
       o1.x = o2.x + o2.width ;
       o1.x0 = o1.x;
@@ -330,7 +333,7 @@ function touch(n1,n2)
   if (o1.id == "PLAYER" && o2.deadly == true)
   {
     //Player should die
-    log ("KILL PLAYER");
+    //log ("KILL PLAYER");
   }
   
 }
@@ -383,72 +386,108 @@ var renderplayer = function()
   context.stroke();
 
   //Refresh
-  if (player.right || player.left || player.up || player.down || player.falling || player.jumping || camera.moving )
+  if (player.right || player.left || player.up || player.down || player.falling || player.jumping || camera.moving || env.somethingFalling)
   { requestAnimationFrame(renderplayer); }
 }
 
 
 function gravity(end)
 {  
-  
+  env.somethingFalling = false;
   for (var i = 0; i < objects.length; i++)
   {
-    var o = objects[i];
-        
+    var o = objects[i];       
     var fall = true;
+    var dy = 0;
+    
+     //can't fall through an object
+    if (o.down && o.touching[1]) 
+    { 
+      if (o.id== "PLAYER")
+      {
+        log ("player landed");
+        stopJumping();
+      }
+      o.falling = false;
+      fall = false;
+      //o.down = false;
+      o.y0 = o.y;
       
-    if (o.hasMass == false || o.touching[1] == true)
+      dy = 0;
+    }   
+  
+    
+    if (o.hasMass == false || o.y > env.height)
     { 
       o.falling = false; 
       fall = false; 
-      stopJumping();       
+            
+      if (o.y > env.height)
+      { stopJumping(); }
     }
     
-    //if ((o.y + o.height) >= floor)       //feet touching floor - don't fall
-    //{ o.falling = false; fall=false; }
 
-
+  
+    if (o.id == "PLAYER")
+    {      
+      //DY adjustments from jumping
+      if (player.jumping )
+      { 
+        var duration = (end - player.jstart);  
+        var jumpTime = 500;
+              
+  
+        var frac = Math.min(1,duration/(jumpTime));          // *2 because half way gravity takes over
+        
+        var jumpPower = player.j0 * (1-frac);    
+        dy -= (duration/1000)*(jumpPower);           
+        
+        if (frac < 2)
+        {
+          //log("frac:" + frac + ", dy: " + dy + ", duration:" + duration);
+        }
+        
+      }
+    }
+    
     if (o.falling == false && fall)                   //Should be falling but isn't yet
     {
-      //START falling    
+      //START falling          
       o.fstart = new Date().getTime();
       o.falling = true;
       o.y0 = o.y;          
     }
 
-    var dy = 0;
+    
 
-    if (o.id == "PLAYER")
-    {
-      //DY adjustments from jumpintg
-      if (player.jumping)
-      { 
-	var jumpTime = 0.25;
-	var duration = (end - player.jstart)/1000;
-	var frac = duration/(jumpTime*2);          // times 2 because half way gravity takes over
-	var jumpPower = player.j0* (1-frac);    
-	dy -= duration*(jumpPower);           
-      }
-    }
-
-    if (fall)
+    if ((fall && o.hasMass) || (o.id == "PLAYER" && player.jumping & player.up))
     {
       //DY adjustments from falling
-      if (o.falling)
+      if (o.falling && o.hasMass)
       {     
-	var duration = (end - o.fstart)/1000;    
-	dy += duration * env.gravity;    
-      }  
-
-      o.y = o.y0 + dy;      
+        env.somethingFalling = true;
+        var duration = (end - o.fstart)/1000;    
+        dy += duration * env.gravity;        
+      } 
       
-      //if (o.y + o.height > floor)
-      //{
-	//log("flooring " + o.id);
-	//o.y = floor - o.height;
-	//stopJumping();
-      //}  
+      
+      o.up = false;
+      o.down = false;
+      
+      if (dy > 0)
+      {        
+        o.down = true;
+       
+      }
+      if (dy < 0)
+      {
+        o.up = true;
+      }
+           
+      //Move object vertically
+      o.y = o.y0 + dy;      
     }
+    
     
     objects[i] = o;
   }
@@ -459,6 +498,8 @@ function stopJumping()
 {
   player.jumpCount = 0;
   player.jumping = false;
+  player.down = false
+  player.up = false;
   player.y0 = player.y;
 }
 
@@ -511,7 +552,9 @@ function doKeyDown(e)
           player.fstart = new Date().getTime();
           player.y0 = player.y;
           player.jumping = true;        
-	  player.falling = true;	
+          player.falling = true;	
+          player.up = true;
+          player.down = false;
           renderplayer();        
         }
         break;
@@ -614,16 +657,22 @@ function showDebug()
     s += addRow("camera.frac",camera.getFrac());
     s += addRow("camera.moving",camera.moving);
     s += addRow("env.controlsLocked",env.controlsLocked);
+    s += addRow("env.somethingFalling",env.somethingFalling);
+    
     s += addRow("leftRightWait",leftRightWait);
+    
+    s += addRow("player.up",player.up);
+    s += addRow("player.down",player.down);
+    
     
     for (var i = 0; i < objects.length ; i++)
     {
       var o = objects[i];
       //s += addRow("object " + i + " touching left", o.touching[0]);
-      //s += addRow("object " + i + " touching bottom",o.touching[1]);
+     s += addRow("object " + i + " touching bottom",o.touching[1]);
       //s += addRow("object " + i + " touching right",o.touching[2]);
       //s += addRow("object " + i + " touching top",o.touching[3]);
-      s += addRow("object.y: " + o.y);
+      s += addRow("object[" + i + "].y: " , o.y);
     }
 
     s += "</table>";
