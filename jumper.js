@@ -6,10 +6,10 @@ var player =
   deadly: false,
   hasMass: true,
   hard: 1,
-  x0: 0,
-  y0: 400,
+  x0: 410,
+  y0: 350,
   x: 0,
-  y: 400,
+  y: 0,
   height: 20,
   width: 20,
   dy: 0,
@@ -18,7 +18,7 @@ var player =
   left: false,
   up: false,
   down: true,
-  speed: 700,
+  speed: 700,   //should be 700
   color:"#000",
 
   jumpCount:0,
@@ -103,11 +103,16 @@ var env =
   height: 600,
   width: 800,
   debugging: true,
-  logging: true,
+  logging: false,
   gravity: 200,  
   rowLogs: 10,
   controlsLocked: 0,
-  somethingFalling: false
+  somethingFalling: false,
+  playerID: 0,               //object array id of player,
+  writePlayer: function()
+  {
+    objects[env.playerID] = player;
+  }
 }
 
 
@@ -131,6 +136,8 @@ function newObj()
     y: 0,
     y0: 0,
     x0: 0,    
+    dy: 0,
+    dx: 0,
     fstart: new Date().getTime(),    
     falling: true,
     //endY: 0,
@@ -163,11 +170,12 @@ a.y = 480;
 a.x = 300;
 a.width= 20;
 a.deadly = true;
-addObj(a);
+//addObj(a);
 
 
-//Add a platform
+//Add a grey box
 var b = newObj();
+b.id = "BOX";
 b.y = 470;
 b.x = 400;
 b.width= 100;
@@ -187,6 +195,7 @@ c.height = 50;
 
 //Add a floor
 var d = newObj();
+d.id = "FLOOR";
 d.y = 500;
 d.x = 0;
 d.width= 600;
@@ -229,24 +238,35 @@ function checkTouching()
       {        
         var o1 = objects[i1];
         var o2 = objects[i2];
-                       
-        var gap = 0;
                
-        if (    o1.x              <= (o2.x + o2.width + gap)    // o1 left > o2 right
-            && (o1.x + o1.width)  >=  o2.x - gap                // o1 right < o2 left
-            &&  o1.y              <= (o2.y + o2.height)   // o1 top > o2 bottom
-            && (o1.y + o1.height) >=  o2.y                // o1 bottom < o2 top
-            )
-            {       
-              touch(i1,i2);
-            }  
+        if (checkTouchingBool(i1,i2))
+        {
+          touch(i1,i2);
+        }        
       }    
     } 
   }
 }
 
-function touch(n1,n2)
+function checkTouchingBool(n1, n2)
 {
+  var o1 = objects[n1];
+  var o2 = objects[n2];
+  var gap = 0;
+  
+  if (    o1.x              <= (o2.x + o2.width + gap)    // o1 left > o2 right
+      && (o1.x + o1.width)  >=  o2.x - gap                // o1 right < o2 left
+      &&  o1.y              <= (o2.y + o2.height)         // o1 top > o2 bottom
+      && (o1.y + o1.height) >=  o2.y                      // o1 bottom < o2 top
+      )
+      { return true;  }  
+      else
+//      else
+      { return false; }
+}
+
+function touch(n1,n2)
+{  
   var o1 = objects[n1];
   var o2 = objects[n2];
   var switched = false;
@@ -264,56 +284,161 @@ function touch(n1,n2)
     playerPresent = true;
   }
   
-  
   if (o1.hard > 0 && o2.hard > 0)
-  {
+  {    
     //left, down, right, up
-    var o1t = new Array(false, false, false, false);
-    var o2t = new Array(false, false, false, false);
+    log ("assessing touching of " + o1.id + " & " + o2.id);
          
+    var touching = true;
+    var overlapping = false;
+    var overlapCount = 0;
     var moved = false;
+    var gap = 30;
     
+    var desc = new Array("moving o1 upwards","moving o1 left", "moving o1 down","moving o1 right");
+    var diff = new Array(0,0,0,0);
     
+    ///////
+    //Detecting touching, and marking as such
+    ///////
     
-    if (!moved && o1.y + o1.height  >= o2.y && o1.y < o2.y  )        // o1 bottom & o2 top
-    {            
-      o1.touching[1] = true; 
+    // o1 bottom & o2 top
+    if (o1.y + o1.height  >= o2.y  && o1.y <= o2.y)        
+    { 
+      diff[0] = (o1.y + o1.height) - o2.y; 
+      o1.touching[1] = true;         
       o2.touching[3] = true;    
-      
-      o1.y = o2.y - o1.height;
-      moved = true;
     }
     
-    if (!moved && o1.x + o1.width  >= o2.x && o1.x <= (o2.x))    // o1 right & o2 left
-    {             
+    // o1 right & o2 left
+    if (o1.x + o1.width  >= o2.x && o1.x <= (o2.x + o2.width)
+        &&  o1.y              < (o2.y + o2.height)         // o1 top > o2 bottom
+        && (o1.y + o1.height) >  o2.y)                      // o1 bottom < o2 top)    
+    { 
+      diff[1] = (o1.x + o1.width) - o2.x; 
+      
       o1.touching[2] = true;
       o2.touching[0] = true;
-         
-      o1.x = (o2.x - o1.width);
-      o1.x0 = o1.x;
-      o1.xstart = new Date().getTime();
-      moved = true;            
-      if (playerPresent) {player.jumpCount = 1;}
+      //alert("touching right");
     }
-    
-    if (!moved && (o2.x + o2.width)  >= o1.x && o2.x <= (o1.x) )  // o1 left & o2 right
-    {       
+        
+    // o1 top & o2 bottom
+    if (o2.y + o2.height  >= o1.y && o2.y + o2.height <= o1.y + o1.height)        
+    { 
+      diff[2] = (o2.y + o2.height) - o1.y; 
+      o1.touching[3] = true; 
+      o2.touching[1] = true;  
+    }
+
+    // o1 left & o2 right
+    if (o2.x + o2.width  >= o1.x && o2.x <= o1.x + o1.width 
+        &&  o1.y              < (o2.y + o2.height)         // o1 top > o2 bottom
+        && (o1.y + o1.height) >  o2.y)  
+    { 
+      diff[3] = (o2.x + o2.width) - o1.x; 
+      if (o1.id=="PLAYER") {log("marking player touching_left (0) as true");}
       o1.touching[0] = true;
       o2.touching[2] = true;
-      
-      
-      o1.x = o2.x + o2.width ;
-      o1.x0 = o1.x;
-      o1.xstart = new Date().getTime();      
-      moved = true;      
-      if (playerPresent) {player.jumpCount = 1;}
+      //alert("touching left");
     }
     
     
-    if (!moved && o2.y + o2.height  > o1.y && o2.y + o2.height < o1.y + o1.height)        // o1 top & o2 bottom
-    {o1.touching[3] = true; o2.touching[1] = true; }
+    //Is there true overlap?
+    for (var i = 0; i < 4; i++)
+    { 
+      if (diff[i] > 0){overlapCount++;} 
+      if (diff[i] <= 0){diff[i] = env.height;}       
+    }
     
     
+    var fixed = false;  //This is used in unlikely case that there's an identical overlap in 2 directions
+   
+    if (overlapCount > 2)
+    {
+      overlapping = true;      
+    }
+    else
+    {
+      fixed = true;//if only one is overlapping then it's not really overlapping
+    }
+         
+    var min = Math.min.apply(null, diff); //max is now the highest value of the differences
+    
+    
+    
+    
+    //Should now fix the SMALLEST overlap (i.e. where an overlap has just occured)
+    
+    
+    //DEBUGGING
+    if (o1.id == "PLAYER" && o2.id == "FLOOR" && !fixed) 
+    {
+      for (var i = 0; i < 4; i++)
+      { log(i + ":" + diff[i]); }
+      log("overlapCount: " + overlapCount + ", fixed:" + fixed + ", min:" + min);     
+    }
+
+     
+    if (diff[0] == min && !fixed)
+    {
+        // o1 bottom & o2 top        
+        log(desc[0]);       
+        o1.y = (o2.y - o1.height) ;         
+        o1.touching[1] = true;
+        o1.touching[0] = false;
+        o1.touching[2] = false;
+        log("pushed o1 upwards, marked left and right of object '" + o1.id + "' as not touching")
+        
+        fixed = true;
+    }
+    if (diff[1] == min && !fixed)
+    {
+      // o1 right & o2 left
+      log(desc[1]);
+      o1.x = (o2.x - o1.width) - 1;      
+      o1.x0 = o1.x;
+      if (playerPresent) {player.jumpCount = 1;}
+      o1.xstart = new Date().getTime();
+      o1.touching[2] = true;
+      o1.touching[1] = false;
+      o1.touching[3] = false;
+      
+      fixed = true;
+    }
+    if (diff[2] == min && !fixed)
+    {
+      // o1 top & o2 bottom
+      log(desc[2]);
+      
+      o1.touching[3] = true;
+      o1.touching[0] = false;
+      o1.touching[2] = false;
+      //TODO: pushing something upwards
+      fixed = true;
+    }
+    if (diff[3] == min && !fixed)
+    {
+        // o1 left & o2 right
+        log(desc[3]);
+                     
+        o1.x = (o2.x + o2.width) + 1;
+        o1.x0 = o1.x;
+        o1.xstart = new Date().getTime();                  
+        if (playerPresent) {player.jumpCount = 1;}
+        o1.touching[0] = true;
+        o1.touching[1] = false;
+        o1.touching[3] = false;
+        fixed = true;
+    }
+    
+    
+    
+    // __ backup1.txt was in here
+    
+    //log("player.touching[0] (left) is now " + player.touching[0]);
+    //log("player.touching[1] (down) is now " + player.touching[1]);
+    //log("player.touching[2] (right)is now " + player.touching[2]);
+    //log("player.touching[3] (top)  is now " + player.touching[3]);
     //Write back to the objects array
     if (switched)
     {
@@ -325,48 +450,60 @@ function touch(n1,n2)
       objects[n1] = o1;
       objects[n2] = o2;
     }    
+    log ("before writePlayer, o1.touching[0] (id=" + o1.id + ") is currently " + o1.touching[0]);
+    log ("before writePlayer, player touching[0] is currently " + objects[env.playerID].touching[0]);
+    env.writePlayer();
+    
+    log ("end of touching algorithm, player touching[0] is currently " + objects[env.playerID].touching[0]);
   }
   
   
   
   //Special touching situations
-  if (o1.id == "PLAYER" && o2.deadly == true)
+  if (o1.id == "PLAYER" && o2.deadly == true || o2.id == "PLAYER" && o1.deadly == true)
   {
     //Player should die
     //log ("KILL PLAYER");
   }
   
+  
+  
 }
 
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
-//Draw!
+//Render loop
 ///////////////////////////////////////////////////////////////////////////////
 var renderplayer = function()
 {
   var end = new Date().getTime();
-  var xduration = (end - player.xstart)/1000;   //seconds since left/right pressed
+  var xduration = (end - objects[env.playerID].xstart)/1000;   //seconds since left/right pressed
   
-    
-  player.dx = 0;  
+  camera.setPosition(); // Provides an offset based on where the 'camera' is.    
+  checkTouching();      // Check nothing's touching before movement     
+  gravity(end);         // Move things vertically   
+  checkTouching();      // Check nothing is still touching
   
-  checkTouching();
-    
-  if (player.right && player.touching[2] == false)  { player.dx = player.speed;}
-  if (player.left  && player.touching[0] == false)  { player.dx = 0-player.speed;}    
-  player.x = player.x0 + (xduration * player.dx);  
+  
+  //Move player horizontally  (now using objects[env.playerID] so it access objects table directly, no need to write back to player object afterwards.
+  // This also makes it easier to convert into a loop to detect moving objects later on.
+  objects[env.playerID].dx = 0;    
+  if (objects[env.playerID].right && objects[env.playerID].touching[2] == false)  { objects[env.playerID].dx = objects[env.playerID].speed;}
+  if (objects[env.playerID].left  && objects[env.playerID].touching[0] == false)  { objects[env.playerID].dx = 0-objects[env.playerID].speed;}        
+  objects[env.playerID].x = objects[env.playerID].x0 + (xduration * objects[env.playerID].dx);  
+  
+  
+  checkTouching();    //Check nothing is still touching
 
-  checkTouching();
-
-  camera.setPosition();
-  gravity(end); 
-  
+ 
   showDebug();
 
+  //Select the canvas
   var c = document.getElementById("canvas");
   var context = c.getContext('2d');
   context.clearRect(0,0,canvas.width,canvas.height);
-
-
 
   //Draw objects (including player)  
   for (var i = 0; i < objects.length; i++)
@@ -374,16 +511,10 @@ var renderplayer = function()
     var o = objects[i];    
     context.beginPath();
     context.rect(o.x - camera.x, o.y - camera.y, o.width, o.height);
-    context.fillStyle = o.color;//'#000000';  
+    context.fillStyle = o.color;
     context.fill();  
   }
   
-  
-  //Draw floor (TEMPORARY)
-  context.beginPath();
-  context.moveTo(0, 500);
-  context.lineTo(600, 500);
-  context.stroke();
 
   //Refresh
   if (player.right || player.left || player.up || player.down || player.falling || player.jumping || camera.moving || env.somethingFalling)
@@ -398,14 +529,13 @@ function gravity(end)
   {
     var o = objects[i];       
     var fall = true;
-    var dy = 0;
+    o.dy = 0;
     
      //can't fall through an object
     if (o.down && o.touching[1]) 
-    { 
+    {       
       if (o.id== "PLAYER")
-      {
-        log ("player landed");
+      {        
         stopJumping();
       }
       o.falling = false;
@@ -413,7 +543,7 @@ function gravity(end)
       //o.down = false;
       o.y0 = o.y;
       
-      dy = 0;
+      o.dy = 0;
     }   
   
     
@@ -440,7 +570,7 @@ function gravity(end)
         var frac = Math.min(1,duration/(jumpTime));          // *2 because half way gravity takes over
         
         var jumpPower = player.j0 * (1-frac);    
-        dy -= (duration/1000)*(jumpPower);           
+        o.dy -= (duration/1000)*(jumpPower);           
         
         if (frac < 2)
         {
@@ -467,25 +597,25 @@ function gravity(end)
       {     
         env.somethingFalling = true;
         var duration = (end - o.fstart)/1000;    
-        dy += duration * env.gravity;        
+        o.dy += duration * env.gravity;        
       } 
       
       
       o.up = false;
       o.down = false;
       
-      if (dy > 0)
+      if (o.dy > 0)
       {        
         o.down = true;
        
       }
-      if (dy < 0)
+      if (o.dy < 0)
       {
         o.up = true;
       }
            
       //Move object vertically
-      o.y = o.y0 + dy;      
+      o.y = o.y0 + o.dy;      
     }
     
     
@@ -642,7 +772,9 @@ function showDebug()
   {
     s = "<table cellpadding=0 cellspacing=0>";
     s += addRow("x",player.x);
+    s += addRow("x0",player.x0);
     s += addRow("y",player.y);
+    s += addRow("y0",player.y0);
     s += addRow("left",player.left);
     s += addRow("right",player.right);
     s += addRow("gravity",env.gravity);
@@ -650,6 +782,8 @@ function showDebug()
     s += addRow("jumpCount",player.jumpCount);
     s += addRow("falling",player.falling);
     s += addRow("jstart",player.jstart);
+    s += addRow("xstart",player.xstart);
+    s += addRow("ystart",player.ystart);
     s += addRow("camera.y",camera.y);
     s += addRow("camera.x",camera.x);
     s += addRow("camera.y0",camera.y0);
@@ -663,6 +797,11 @@ function showDebug()
     
     s += addRow("player.up",player.up);
     s += addRow("player.down",player.down);
+    
+    s += addRow("player.touching_left",player.touching[0]);
+    s += addRow("player.touching_down",player.touching[1]);
+    s += addRow("player.touching_right",player.touching[2]);
+    s += addRow("player.touching_up",player.touching[3]);
     
     
     for (var i = 0; i < objects.length ; i++)
