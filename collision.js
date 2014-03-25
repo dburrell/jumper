@@ -30,10 +30,10 @@ function checkTouchingBool(n1, n2)
 {
   var o1 = env.objects[n1];
   var o2 = env.objects[n2];
-  var gap = 0;
   
-  if (    o1.x              <= (o2.x + o2.width + gap)    // o1 left > o2 right
-      && (o1.x + o1.width)  >=  o2.x - gap                // o1 right < o2 left
+  
+  if (    o1.x              <= (o2.x + o2.width)          // o1 left > o2 right
+      && (o1.x + o1.width)  >=  o2.x                      // o1 right < o2 left
       &&  o1.y              <= (o2.y + o2.height)         // o1 top > o2 bottom
       && (o1.y + o1.height) >=  o2.y                      // o1 bottom < o2 top
       )
@@ -76,73 +76,55 @@ function touch(n1, n2)
     //left, down, right, up    
     var touching = true;
     var overlapCount = 0;
-    var moved = false;
-    var gap = 30;
-    
-    var desc = new Array("moving o1 right","moving o1 up", "moving o1 left","moving o1 down");
+    var moved = false;    
     var diff = new Array(0,0,0,0);
     
     
-    var ddx = o1.dx - o2.dx;
-    var ddy = o1.dy - o2.dy;
     
-    ///////
+    ////////////////////////////////////////////
     //Detecting touching, and marking as such
-    ///////
+    ////////////////////////////////////////////
     
     // o1 left & o2 right
     if (o1.x <= o2.x + o2.width  
-        && (o1.x + o1.width) - o1.dx >= o2.x + o2.width
-                    
-        &&  o1.y              < (o2.y + o2.height)         // o1 top > o2 bottom
+        && (o1.x + o1.width) - o1.dx >= o2.x + o2.width                    
+        &&  o1.y              < (o2.y + o2.height)     
         && (o1.y + o1.height) >  o2.y)  
     { 
-      diff[0] = (o2.x + o2.width) - o1.x; 
-      
-      o1.touching[0] = true;
-      o2.touching[2] = true;      
+      diff[0] = (o2.x + o2.width) - o1.x;       
+      o1.touching[0] = true;     
     }
     
     // o1 bottom & o2 top
-    if (o1.y + o1.height  >= o2.y  
-      //findme
-      //&& o1.y + o1.height - o1.dy <= o2.y
-      && o1.x              < (o2.x + o2.width )    // o1 left > o2 right
+    if (o1.y + o1.height  >= o2.y        
+      && o1.x              < (o2.x + o2.width )    
       && (o1.x + o1.width)  >  o2.x  
     )        
     { 
-      diff[1] = (o1.y + o1.height) - o2.y; 
-      
-      o1.touching[1] = true;         
-      o2.touching[3] = true;    
+      diff[1] = (o1.y + o1.height) - o2.y;       
+      o1.touching[1] = true;               
     }
     
     // o1 right & o2 left
     if (o1.x + o1.width  >= o2.x 
         && o1.x - o1.dx <= o2.x      
-        &&  o1.y              < (o2.y + o2.height)         // o1 top > o2 bottom
-        && (o1.y + o1.height) >  o2.y)                      // o1 bottom < o2 top)    
+        &&  o1.y              < (o2.y + o2.height) 
+        && (o1.y + o1.height) >  o2.y)             
     { 
-      diff[2] = (o1.x + o1.width) - o2.x; 
-      
-      o1.touching[2] = true;
-      o2.touching[0] = true;
-      
-      //alert("touching right");
+      diff[2] = (o1.x + o1.width) - o2.x;       
+      o1.touching[2] = true;      
     }
         
     // o1 top & o2 bottom
     if (o1.y <= o2.y + o2.height
       && o1.y + o1.dy <= o2.y
-      && o1.x              < (o2.x + o2.width )    // o1 left > o2 right
+      && o1.x              < (o2.x + o2.width )    
       && (o1.x + o1.width)  >  o2.x  
     )        
     if (o2.y + o2.height  >= o1.y && o2.y + o2.height <= o1.y + o1.height)        
     { 
-      diff[3] = (o2.y + o2.height) - o1.y; 
-      
-      o1.touching[3] = true; 
-      o2.touching[1] = true;  
+      diff[3] = (o2.y + o2.height) - o1.y;       
+      o1.touching[3] = true;       
     }
 
     
@@ -153,8 +135,9 @@ function touch(n1, n2)
 
     
     
-    
+    ////////////////////////////////////////////
     //Is there true overlap?
+    ////////////////////////////////////////////
     for (var i = 0; i < 4; i++)
     { 
       if (diff[i] > 0){overlapCount++;} 
@@ -170,18 +153,18 @@ function touch(n1, n2)
     var min = Math.min.apply(null, diff); //max is now the highest value of the differences
     
     
-    
-    //Should now fix the SMALLEST overlap (i.e. where an overlap has just occured)
-    
-
+    ////////////////////////////////////////////
+    //Should now fix the SMALLEST overlap
+    ////////////////////////////////////////////
     if (diff[0] == min && !fixed)
     {
         // o1 left & o2 right
         o1.x = (o2.x + o2.width);
         o1.x0 = o1.x;
-        o1.xstart = new Date().getTime();                  
-        if (playerPresent) {player.jumpCount--;}
+        o1.xstart = new Date().getTime();                          
         o1.touching[0] = true;        
+               
+        if (playerPresent) {player.jumpCount--;}
         fixed = true;
     }
     if (diff[1] == min && !fixed)
@@ -190,32 +173,31 @@ function touch(n1, n2)
         o1.y = (o2.y - o1.height) ;         
         o1.touching[1] = true;        
         o1.down = false;
-        o1.up = false;
-        
+        o1.up = false;        
         fixed = true;
     }
     if (diff[2] == min && !fixed)
     {
       // o1 right & o2 left      
       o1.x = (o2.x - o1.width) ;      
-      o1.x0 = o1.x;
-      if (playerPresent) {player.jumpCount--;}
-      o1.xstart = new Date().getTime();
+      o1.x0 = o1.x;      
+      o1.xstart = new Date().getTime();      
       o1.touching[2] = true;      
-      
+      if (playerPresent) {player.jumpCount--;}
       fixed = true;
     }
     if (diff[3] == min && !fixed)
     {
-      // o1 top & o2 bottom
-      
+      // o1 top & o2 bottom     
       o1.touching[3] = true;      
       //TODO: pushing something upwards
       fixed = true;
     }
     
-
+    
+    ////////////////////////////////////////////
     //Write back to the env.objects array
+    ////////////////////////////////////////////
     if (switched)
     {
       env.objects[n1] = o2;
