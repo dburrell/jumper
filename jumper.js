@@ -6,10 +6,10 @@ var player =
   deadly: false,
   hasMass: true,
   hard: 1,
-  x0: 370,
-  y0: 350,
-  x: 0,
-  y: 0,
+  x0: 0,
+  y0: 0,
+  x: 500,
+  y: 400,
   height: 20,
   width: 20,
   dy: 0,
@@ -150,6 +150,8 @@ function newObj()
 
 function addObj(o)
 {  
+  o.x0 = o.x;
+  o.y0 = o.y;
   objects[objects.length] = o;   
 }
 
@@ -174,10 +176,10 @@ a.deadly = true;
 //Add a grey box
 var b = newObj();
 b.id = "BOX";
-b.y = 470;
+b.y = 100;
 b.x = 400;
 b.width= 100;
-b.height = 70;
+b.height = 400;
 b.color = "rgba(200,200,200,0.5)";
 b.deadly = false;
 b.hasMass = false;
@@ -185,18 +187,19 @@ addObj(b);
 
 //Add a wall
 var c = newObj();
-c.y = 0;
+c.id = "BOX_RIGHT";
+c.y = 100;
 c.x = 600;
 c.width= 100;
-c.height = 50;
-//addObj(c);
+c.height = 400;
+addObj(c);
 
 //Add a floor
 var d = newObj();
 d.id = "FLOOR";
 d.y = 500;
 d.x = 0;
-d.width= 600;
+d.width= 700;
 d.height = 10;
 d.hasMass = false;
 d.color = "#FA5";
@@ -261,7 +264,6 @@ function checkTouchingBool(n1, n2)
       )
       { return true;  }  
       else
-//      else
       { return false; }
 }
 
@@ -332,17 +334,18 @@ function touch(n1, n2)
     }
     
     // o1 bottom & o2 top
-    if (o1.y + o1.height  >= o2.y  && o1.y <= o2.y
+    if (o1.y + o1.height  >= o2.y  
+      && o1.y + o1.height - o1.dy <= o2.y
       && o1.x              < (o2.x + o2.width )    // o1 left > o2 right
       && (o1.x + o1.width)  >  o2.x  
     )        
     { 
       diff[1] = (o1.y + o1.height) - o2.y; 
-      if (o1.id=="PLAYER" && o2.id == "BOX") 
+      if (o1.id=="PLAYER" && o2.id == "FLOOR") 
       {
         log("marking player (" + o1.y + "," + o1.x + ") touching_bottom (1) as true, against " + o2.id);
         log ("o2.y: " + o2.y);
-        }
+      }
       
       o1.touching[1] = true;         
       o2.touching[3] = true;    
@@ -364,6 +367,11 @@ function touch(n1, n2)
     }
         
     // o1 top & o2 bottom
+    if (o1.y <= o2.y + o2.height
+      && o1.y + o1.dy <= o2.y
+      && o1.x              < (o2.x + o2.width )    // o1 left > o2 right
+      && (o1.x + o1.width)  >  o2.x  
+    )        
     if (o2.y + o2.height  >= o1.y && o2.y + o2.height <= o1.y + o1.height)        
     { 
       diff[3] = (o2.y + o2.height) - o1.y; 
@@ -409,7 +417,7 @@ function touch(n1, n2)
     
     
     //DEBUGGING
-    if (o1.id == "PLAYER" && o2.id == "BOX" ) 
+    if (o1.id == "PLAYER" && o2.id == "FLOOR" ) 
     {
       for (var i = 0; i < 4; i++)
       { log(i + ":" + diff[i]); }
