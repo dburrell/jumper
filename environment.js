@@ -3,11 +3,13 @@ var env =
   height: 600,
   width: 800,
   
+  gameOver: false,
+  
   objects: new Array(),
   debugging: true,
-  logging: false,
-  logFilter: "", 
-  gravity: 200,  
+  logging: true,
+  logFilter: "Jumping removes", 
+  gravity: 300,  
   rowLogs: 10,
   controlsLocked: 0,
   click0:0,

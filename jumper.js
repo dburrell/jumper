@@ -4,61 +4,64 @@
 ///////////////////////////////////////////////////////////////////////////////
 var renderplayer = function()
 {
-  env.click();
-  var now = new Date().getTime();
-  var xduration = (now - env.objects[env.playerID].xstart)/1000;   //seconds since left/right pressed
-  
-  camera.setPosition(true, true);  // Provides an offset based on where the 'camera' is.       
-  gravity(now);                     // Move things vertically   
-  
-  
-  // Move player horizontally  
-  // This also makes it easier to convert into a loop to detect moving env.objects later on.
-  env.objects[env.playerID].dx = 0;    
-  env.log("DX CALC: player_touching_left (0) is " + env.objects[env.playerID].touching[0]);
-  env.log("DX CALC: player_touching_right (2) is " + env.objects[env.playerID].touching[2]);
-  
-  var dx = 0;      
-  if (env.objects[env.playerID].right && env.objects[env.playerID].touching[2] == false)  { dx = env.objects[env.playerID].speed;}
-  if (env.objects[env.playerID].left  && env.objects[env.playerID].touching[0] == false)  { dx = 0-env.objects[env.playerID].speed;}        
-  env.objects[env.playerID].dx = dx * xduration;
-  
-  
-  if (dx == 0)
+  if (!env.gameOver)
   {
-    env.objects[env.playerID].x0 = env.objects[env.playerID].x;
-    env.objects[env.playerID].xstart = now;
+    env.click();
+    var now = new Date().getTime();
+    var xduration = (now - env.objects[env.playerID].xstart)/1000;   //seconds since left/right pressed
+    
+    camera.setPosition(true, true);  // Provides an offset based on where the 'camera' is.       
+    gravity(now);                     // Move things vertically   
+    
+    
+    // Move player horizontally  
+    // This also makes it easier to convert into a loop to detect moving env.objects later on.
+    env.objects[env.playerID].dx = 0;    
+    env.log("DX CALC: player_touching_left (0) is " + env.objects[env.playerID].touching[0]);
+    env.log("DX CALC: player_touching_right (2) is " + env.objects[env.playerID].touching[2]);
+    
+    var dx = 0;      
+    if (env.objects[env.playerID].right && env.objects[env.playerID].touching[2] == false)  { dx = env.objects[env.playerID].speed;}
+    if (env.objects[env.playerID].left  && env.objects[env.playerID].touching[0] == false)  { dx = 0-env.objects[env.playerID].speed;}        
+    env.objects[env.playerID].dx = dx * xduration;
+    
+    
+    if (dx == 0)
+    {
+      env.objects[env.playerID].x0 = env.objects[env.playerID].x;
+      env.objects[env.playerID].xstart = now;
+    }
+    
+    env.objects[env.playerID].x = env.objects[env.playerID].x0 + env.objects[env.playerID].dx;  
+    
+    env.log("DX CALC: player.dx is " + env.objects[env.playerID].dx);
+    env.log("DX CALC: player.x is " + env.objects[env.playerID].x);
+    
+    checkTouching();    //Check nothing is overlapping, mark things that are touching, etc.
+
+   
+    showDebug();
+
+    //Select the canvas
+    var c = document.getElementById("canvas");
+    var context = c.getContext('2d');
+    context.clearRect(0,0,canvas.width,canvas.height);
+
+    //Draw env.objects (including player)  
+    for (var i = 0; i < env.objects.length; i++)
+    {    
+      var o = env.objects[i];    
+      context.beginPath();
+      context.rect(o.x - camera.x, o.y - camera.y, o.width, o.height);
+      context.fillStyle = o.color;
+      context.fill();  
+    }
+    
+
+    //Refresh
+    if (player.right || player.left || player.up || player.down || player.falling || player.jumping || camera.moving || env.somethingFalling)
+    { requestAnimationFrame(renderplayer); }
   }
-  
-  env.objects[env.playerID].x = env.objects[env.playerID].x0 + env.objects[env.playerID].dx;  
-  
-  env.log("DX CALC: player.dx is " + env.objects[env.playerID].dx);
-  env.log("DX CALC: player.x is " + env.objects[env.playerID].x);
-  
-  checkTouching();    //Check nothing is overlapping, mark things that are touching, etc.
-
- 
-  showDebug();
-
-  //Select the canvas
-  var c = document.getElementById("canvas");
-  var context = c.getContext('2d');
-  context.clearRect(0,0,canvas.width,canvas.height);
-
-  //Draw env.objects (including player)  
-  for (var i = 0; i < env.objects.length; i++)
-  {    
-    var o = env.objects[i];    
-    context.beginPath();
-    context.rect(o.x - camera.x, o.y - camera.y, o.width, o.height);
-    context.fillStyle = o.color;
-    context.fill();  
-  }
-  
-
-  //Refresh
-  if (player.right || player.left || player.up || player.down || player.falling || player.jumping || camera.moving || env.somethingFalling)
-  { requestAnimationFrame(renderplayer); }
 }
 
 

@@ -283,7 +283,7 @@ function touch(n1, n2)
   if (o1.id == "PLAYER" && o2.deadly == true || o2.id == "PLAYER" && o1.deadly == true)
   {
     //Player should die
-    //log ("KILL PLAYER");
+    die();    
   }
   
   if (o1.id == "PLAYER")
