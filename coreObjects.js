@@ -15,7 +15,9 @@ var player =
   
   // Asthetics
   color:"#000",  
-     
+  img:"",             // background image
+  imgRepeat: false,  // repeat background image
+    
   // Capabilities
   climber: false,
   maxJumps:2,
@@ -65,14 +67,16 @@ function newObj()
     y: 0,
     
     // Asthetics
-    color: "#FAA",  //default of horrific pink
+    color: "#FAF",      // default of horrific pink
+    img:"",             // background image
+    imgRepeat: false,  // repeat background image
     
     // Capabilities
     speed: 700,
     
     // Current state
-    left: 0,          //needed?
-    right: 0,         //needed?
+    left: 0,          // needed?
+    right: 0,         // needed?
     down: true,    
     y0: 0,
     x0: 0,    

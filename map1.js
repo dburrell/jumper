@@ -1,11 +1,10 @@
 
 //Add enemy
 var a = newObj();
-a.hard = 1;
 a.y = 480;
 a.x = 300;
 a.width= 20;
-a.deadly = false;
+a.deadly = true;
 addObj(a);
 
 
@@ -55,3 +54,18 @@ exit.color = "#0F0";
 exit.deadly = false;
 exit.hasMass = false;
 addObj(exit);
+
+
+//Add a grey box
+var img = newObj();
+img.id = "BOX";
+img.solid = false;
+img.y = 100;
+img.x = 100;
+img.width= 100;
+img.height = 100;
+img.img = "check.png";
+img.deadly = false;
+img.hasMass = false;
+addObj(img);
+

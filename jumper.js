@@ -1,3 +1,22 @@
+var images = new Array();
+
+///////////////////////////////////////////////////////////////////////////////
+//Instantiate & pre-load any images that will need to be drawn 
+///////////////////////////////////////////////////////////////////////////////
+
+for (var i = 0; i < env.objects.length; i++)
+{  
+  var o = env.objects[i];
+  if (o.img != "")
+  {
+    var thumbImg = document.createElement('img');      
+    thumbImg.id = "img" + i;
+    thumbImg.src = o.img;
+    images[i] = thumbImg;
+  }  
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //Render loop
@@ -53,8 +72,28 @@ var renderplayer = function()
       var o = env.objects[i];    
       context.beginPath();
       context.rect(o.x - camera.x, o.y - camera.y, o.width, o.height);
-      context.fillStyle = o.color;
-      context.fill();  
+      
+      if (o.img == "")
+      {
+        env.log("using color " + o.color + " for " + o.id);
+        context.fillStyle = o.color;        
+        context.fillRect(o.x, o.y, o.width, o.height);          
+      }
+      else
+      {           
+        var img = images[i];
+      
+        var pattern = context.createPattern(img, 'repeat');
+
+        context.rect(o.x, o.y, o.width, o.height);
+        context.fillStyle = pattern;
+        context.fill();
+        
+        //var img = images[i];
+        //context.drawImage(img, o.x, o.y, o.width, o.height);       
+      }
+      
+      
     }
     
 

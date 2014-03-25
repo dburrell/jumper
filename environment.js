@@ -7,8 +7,8 @@ var env =
   
   objects: new Array(),
   debugging: true,
-  logging: true,
-  logFilter: "Jumping removes", 
+  logging: false,
+  logFilter: "", 
   gravity: 300,  
   rowLogs: 10,
   controlsLocked: 0,
