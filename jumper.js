@@ -6,7 +6,7 @@ var player =
   deadly: false,
   hasMass: true,
   hard: 1,
-  x0: 410,
+  x0: 370,
   y0: 350,
   x: 0,
   y: 0,
@@ -110,9 +110,9 @@ var env =
   somethingFalling: false,
   playerID: 0,               //object array id of player,
   writePlayer: function()
-  {
-    objects[env.playerID] = player;
-  }
+  { objects[env.playerID] = player; },
+  refreshPlayer: function()
+  { player = objects[env.playerID]; }
 }
 
 
@@ -139,11 +139,9 @@ function newObj()
     dy: 0,
     dx: 0,
     fstart: new Date().getTime(),    
-    falling: true,
-    //endY: 0,
-    //endX: 0,
+    falling: true,    
     speed: 700,
-    color: "#00F",  //default of blue
+    color: "#FAA",  //default of horrific pink
     touching: new Array(false,false,false,false) 
   }
   
@@ -180,7 +178,7 @@ b.y = 470;
 b.x = 400;
 b.width= 100;
 b.height = 70;
-b.color = "#ccc";
+b.color = "rgba(200,200,200,0.5)";
 b.deadly = false;
 b.hasMass = false;
 addObj(b);
@@ -246,6 +244,8 @@ function checkTouching()
       }    
     } 
   }
+  
+  log("TOUCHING: end of touching LOOP - player.left is " + objects[env.playerID].touching[0]);
 }
 
 function checkTouchingBool(n1, n2)
@@ -265,7 +265,7 @@ function checkTouchingBool(n1, n2)
       { return false; }
 }
 
-function touch(n1,n2)
+function touch(n1, n2)
 {  
   var o1 = objects[n1];
   var o2 = objects[n2];
@@ -287,60 +287,98 @@ function touch(n1,n2)
   if (o1.hard > 0 && o2.hard > 0)
   {    
     //left, down, right, up
-    log ("assessing touching of " + o1.id + " & " + o2.id);
-         
+    if (o1.id == "PLAYER" && o2.id == "BOX")
+    {
+      log ("assessing touching of " + o1.id + " & " + o2.id);
+    }    
     var touching = true;
     var overlapping = false;
     var overlapCount = 0;
     var moved = false;
     var gap = 30;
     
-    var desc = new Array("moving o1 upwards","moving o1 left", "moving o1 down","moving o1 right");
+    var desc = new Array("moving o1 right","moving o1 up", "moving o1 left","moving o1 down");
     var diff = new Array(0,0,0,0);
+    
+    
+    var ddx = o1.dx - o2.dx;
+    var ddy = o1.dy - o2.dy;
+    if (o1.id == "PLAYER" && o2.id == "BOX")
+    {
+      log ("TOUCHING: Player DDX vs BOX is " + ddx);
+    }
     
     ///////
     //Detecting touching, and marking as such
     ///////
     
-    // o1 bottom & o2 top
-    if (o1.y + o1.height  >= o2.y  && o1.y <= o2.y)        
+    // o1 left & o2 right
+    if (o1.x <= o2.x + o2.width  
+        && (o1.x + o1.width) - o1.dx >= o2.x + o2.width
+                    
+        &&  o1.y              < (o2.y + o2.height)         // o1 top > o2 bottom
+        && (o1.y + o1.height) >  o2.y)  
     { 
-      diff[0] = (o1.y + o1.height) - o2.y; 
+      diff[0] = (o2.x + o2.width) - o1.x; 
+      if (o1.id=="PLAYER" ) 
+      {
+        log("marking player (" + o1.y + "," + o1.x + ") touching_left (0) as true, against " + o2.id);
+      log ("o2.y: " + o2.y);
+      }
+      
+      o1.touching[0] = true;
+      o2.touching[2] = true;
+      //alert("touching left");
+    }
+    
+    // o1 bottom & o2 top
+    if (o1.y + o1.height  >= o2.y  && o1.y <= o2.y
+      && o1.x              < (o2.x + o2.width )    // o1 left > o2 right
+      && (o1.x + o1.width)  >  o2.x  
+    )        
+    { 
+      diff[1] = (o1.y + o1.height) - o2.y; 
+      if (o1.id=="PLAYER" && o2.id == "BOX") 
+      {
+        log("marking player (" + o1.y + "," + o1.x + ") touching_bottom (1) as true, against " + o2.id);
+        log ("o2.y: " + o2.y);
+        }
+      
       o1.touching[1] = true;         
       o2.touching[3] = true;    
     }
     
     // o1 right & o2 left
-    if (o1.x + o1.width  >= o2.x && o1.x <= (o2.x + o2.width)
+    if (o1.x + o1.width  >= o2.x 
+        && o1.x - o1.dx <= o2.x      
         &&  o1.y              < (o2.y + o2.height)         // o1 top > o2 bottom
         && (o1.y + o1.height) >  o2.y)                      // o1 bottom < o2 top)    
     { 
-      diff[1] = (o1.x + o1.width) - o2.x; 
+      diff[2] = (o1.x + o1.width) - o2.x; 
+      log("marking player (" + o1.y + "," + o1.x + ") touching_right (2) as true");
       
       o1.touching[2] = true;
       o2.touching[0] = true;
+      
       //alert("touching right");
     }
         
     // o1 top & o2 bottom
     if (o2.y + o2.height  >= o1.y && o2.y + o2.height <= o1.y + o1.height)        
     { 
-      diff[2] = (o2.y + o2.height) - o1.y; 
+      diff[3] = (o2.y + o2.height) - o1.y; 
+      
       o1.touching[3] = true; 
       o2.touching[1] = true;  
     }
 
-    // o1 left & o2 right
-    if (o2.x + o2.width  >= o1.x && o2.x <= o1.x + o1.width 
-        &&  o1.y              < (o2.y + o2.height)         // o1 top > o2 bottom
-        && (o1.y + o1.height) >  o2.y)  
-    { 
-      diff[3] = (o2.x + o2.width) - o1.x; 
-      if (o1.id=="PLAYER") {log("marking player touching_left (0) as true");}
-      o1.touching[0] = true;
-      o2.touching[2] = true;
-      //alert("touching left");
-    }
+    
+    
+    
+    
+
+
+    
     
     
     //Is there true overlap?
@@ -353,7 +391,7 @@ function touch(n1,n2)
     
     var fixed = false;  //This is used in unlikely case that there's an identical overlap in 2 directions
    
-    if (overlapCount > 2)
+    if (overlapCount >= 1)
     {
       overlapping = true;      
     }
@@ -371,65 +409,66 @@ function touch(n1,n2)
     
     
     //DEBUGGING
-    if (o1.id == "PLAYER" && o2.id == "FLOOR" && !fixed) 
+    if (o1.id == "PLAYER" && o2.id == "BOX" ) 
     {
       for (var i = 0; i < 4; i++)
       { log(i + ":" + diff[i]); }
       log("overlapCount: " + overlapCount + ", fixed:" + fixed + ", min:" + min);     
     }
 
-     
-    if (diff[0] == min && !fixed)
+     if (diff[0] == min && !fixed)
     {
-        // o1 bottom & o2 top        
-        log(desc[0]);       
-        o1.y = (o2.y - o1.height) ;         
-        o1.touching[1] = true;
-        o1.touching[0] = false;
-        o1.touching[2] = false;
-        log("pushed o1 upwards, marked left and right of object '" + o1.id + "' as not touching")
-        
+        // o1 left & o2 right
+        log(desc[0]);
+        log("activing per[0] action");
+                     
+        o1.x = (o2.x + o2.width);
+        o1.x0 = o1.x;
+        o1.xstart = new Date().getTime();                  
+        if (playerPresent) {player.jumpCount = 1;}
+        o1.touching[0] = true;        
         fixed = true;
     }
     if (diff[1] == min && !fixed)
     {
-      // o1 right & o2 left
-      log(desc[1]);
-      o1.x = (o2.x - o1.width) - 1;      
-      o1.x0 = o1.x;
-      if (playerPresent) {player.jumpCount = 1;}
-      o1.xstart = new Date().getTime();
-      o1.touching[2] = true;
-      o1.touching[1] = false;
-      o1.touching[3] = false;
-      
-      fixed = true;
+        // o1 bottom & o2 top        
+        log(desc[1]);       
+        log("activing per[1] action");
+        o1.y = (o2.y - o1.height) ;         
+        o1.touching[1] = true;        
+        o1.down = false;
+        o1.up = false;
+        log("pushed o1 ('" + o1.id + "') upwards")
+        
+        fixed = true;
     }
     if (diff[2] == min && !fixed)
     {
-      // o1 top & o2 bottom
+      // o1 right & o2 left
+      if (o1.id == "PLAYER")
+      {
+        log ("marking player right [2] as true");
+      }
       log(desc[2]);
+      log("activing per[2] action");
+      o1.x = (o2.x - o1.width) ;      
+      o1.x0 = o1.x;
+      if (playerPresent) {player.jumpCount = 1;}
+      o1.xstart = new Date().getTime();
+      o1.touching[2] = true;      
       
-      o1.touching[3] = true;
-      o1.touching[0] = false;
-      o1.touching[2] = false;
-      //TODO: pushing something upwards
       fixed = true;
     }
     if (diff[3] == min && !fixed)
     {
-        // o1 left & o2 right
-        log(desc[3]);
-                     
-        o1.x = (o2.x + o2.width) + 1;
-        o1.x0 = o1.x;
-        o1.xstart = new Date().getTime();                  
-        if (playerPresent) {player.jumpCount = 1;}
-        o1.touching[0] = true;
-        o1.touching[1] = false;
-        o1.touching[3] = false;
-        fixed = true;
+      // o1 top & o2 bottom
+      log(desc[3]);
+      log("activing per[3] action");
+      o1.touching[3] = true;      
+      //TODO: pushing something upwards
+      fixed = true;
     }
+    
     
     
     
@@ -450,11 +489,8 @@ function touch(n1,n2)
       objects[n1] = o1;
       objects[n2] = o2;
     }    
-    log ("before writePlayer, o1.touching[0] (id=" + o1.id + ") is currently " + o1.touching[0]);
-    log ("before writePlayer, player touching[0] is currently " + objects[env.playerID].touching[0]);
-    env.writePlayer();
     
-    log ("end of touching algorithm, player touching[0] is currently " + objects[env.playerID].touching[0]);
+    
   }
   
   
@@ -466,7 +502,10 @@ function touch(n1,n2)
     //log ("KILL PLAYER");
   }
   
-  
+  if (o1.id == "PLAYER")
+  {
+    log("TOUCHING: end of touching, player_touching_left is " + objects[env.playerID].touching[0]);
+  }
   
 }
 
@@ -478,24 +517,39 @@ function touch(n1,n2)
 ///////////////////////////////////////////////////////////////////////////////
 var renderplayer = function()
 {
-  var end = new Date().getTime();
-  var xduration = (end - objects[env.playerID].xstart)/1000;   //seconds since left/right pressed
+  var now = new Date().getTime();
+  var xduration = (now - objects[env.playerID].xstart)/1000;   //seconds since left/right pressed
   
-  camera.setPosition(); // Provides an offset based on where the 'camera' is.    
-  checkTouching();      // Check nothing's touching before movement     
-  gravity(end);         // Move things vertically   
-  checkTouching();      // Check nothing is still touching
+  camera.setPosition(true, true);  // Provides an offset based on where the 'camera' is.       
+  gravity(now);                     // Move things vertically   
+  
   
   
   //Move player horizontally  (now using objects[env.playerID] so it access objects table directly, no need to write back to player object afterwards.
   // This also makes it easier to convert into a loop to detect moving objects later on.
   objects[env.playerID].dx = 0;    
-  if (objects[env.playerID].right && objects[env.playerID].touching[2] == false)  { objects[env.playerID].dx = objects[env.playerID].speed;}
-  if (objects[env.playerID].left  && objects[env.playerID].touching[0] == false)  { objects[env.playerID].dx = 0-objects[env.playerID].speed;}        
-  objects[env.playerID].x = objects[env.playerID].x0 + (xduration * objects[env.playerID].dx);  
+  log("DX CALC: player_touching_left (0) is " + objects[env.playerID].touching[0]);
+  log("DX CALC: player_touching_right (2) is " + objects[env.playerID].touching[2]);
+  var dx = 0;
+  //if (objects[env.playerID].right && objects[env.playerID].touching[2] == false)  { objects[env.playerID].dx = objects[env.playerID].speed;}
+  //if (objects[env.playerID].left  && objects[env.playerID].touching[0] == false)  { objects[env.playerID].dx = 0-objects[env.playerID].speed;}        
+  if (objects[env.playerID].right && objects[env.playerID].touching[2] == false)  { dx = objects[env.playerID].speed;}
+  if (objects[env.playerID].left  && objects[env.playerID].touching[0] == false)  { dx = 0-objects[env.playerID].speed;}        
+  objects[env.playerID].dx = dx * xduration;
   
   
-  checkTouching();    //Check nothing is still touching
+  if (dx == 0)
+  {
+    objects[env.playerID].x0 = objects[env.playerID].x;
+    objects[env.playerID].xstart = now;
+  }
+  
+  objects[env.playerID].x = objects[env.playerID].x0 + objects[env.playerID].dx;  
+  
+  log("DX CALC: player.dx is " + objects[env.playerID].dx);
+  log("DX CALC: player.x is " + objects[env.playerID].x);
+  
+  checkTouching();    //Check nothing is overlapping, mark things that are touching, etc.
 
  
   showDebug();
@@ -522,21 +576,34 @@ var renderplayer = function()
 }
 
 
-function gravity(end)
+function gravity(now)
 {  
+  log("Gravity: Starting");
+  //env.refreshPlayer();
   env.somethingFalling = false;
   for (var i = 0; i < objects.length; i++)
   {
     var o = objects[i];       
     var fall = true;
+    var prevDy = o.dy;
     o.dy = 0;
     
+    if (o.id== "PLAYER")
+    {
+      log("Gravity: player touching[1] is " + o.touching[1]);        
+      log("Gravity: player down is " + o.down); 
+      log("Gravity: player up is " + o.up); 
+      log("Gravity: fall is " + fall); 
+    }
+    
      //can't fall through an object
-    if (o.down && o.touching[1]) 
-    {       
+    if (!o.up && o.touching[1]) 
+    {             
       if (o.id== "PLAYER")
-      {        
+      {     
+        log("Graviyt: LANDING PLAYER")
         stopJumping();
+        log("after stopJumping, player.jumping is " + player.jumping);   
       }
       o.falling = false;
       fall = false;
@@ -549,6 +616,7 @@ function gravity(end)
     
     if (o.hasMass == false || o.y > env.height)
     { 
+      if (o.id== "PLAYER") { log("Gravity: Player fallen off world, stopping");}
       o.falling = false; 
       fall = false; 
             
@@ -563,7 +631,7 @@ function gravity(end)
       //DY adjustments from jumping
       if (player.jumping )
       { 
-        var duration = (end - player.jstart);  
+        var duration = (now - player.jstart);  
         var jumpTime = 500;
               
   
@@ -571,6 +639,8 @@ function gravity(end)
         
         var jumpPower = player.j0 * (1-frac);    
         o.dy -= (duration/1000)*(jumpPower);           
+        
+        if (o.id== "PLAYER") { log("Gravity: Jumping, so dy is now " + o.dy);}
         
         if (frac < 2)
         {
@@ -596,7 +666,7 @@ function gravity(end)
       if (o.falling && o.hasMass)
       {     
         env.somethingFalling = true;
-        var duration = (end - o.fstart)/1000;    
+        var duration = (now - o.fstart)/1000;    
         o.dy += duration * env.gravity;        
       } 
       
@@ -604,21 +674,29 @@ function gravity(end)
       o.up = false;
       o.down = false;
       
-      if (o.dy > 0)
+      if (o.dy > prevDy)
       {        
         o.down = true;
        
       }
-      if (o.dy < 0)
+      if (o.dy < prevDy)
       {
         o.up = true;
       }
+           
+      
            
       //Move object vertically
       o.y = o.y0 + o.dy;      
     }
     
-    
+    if (o.id == "PLAYER")
+    {
+      log("gravity: player.dy: " + o.dy);
+      log("gravity: player.y: " + o.y);
+      log("gravity: player.y + player.height: " + (o.y + o.height));
+      
+    }
     objects[i] = o;
   }
 }
@@ -631,6 +709,8 @@ function stopJumping()
   player.down = false
   player.up = false;
   player.y0 = player.y;
+  player.ystart = new Date().getTime();
+  
 }
 
 
@@ -668,18 +748,22 @@ window.addEventListener( "keyup", doKeyUp, false )
 
 function doKeyDown(e) 
 { 
-  if (env.controlsLocked === 0)
-  {
+  if (env.controlsLocked == 0)
+  {      
     switch (e.keyCode)
-    {
-
+    {      
+      case 87:
+        //w - wipe log
+        $("#log2").html("");
+        $("#log").html(""); 
+        break;
       case 65:      
         if (player.jumpCount < player.maxJumps)
         {       
           log("keypress: jump (a)");
           player.jumpCount++;        
-          player.jstart = new Date().getTime();
-          player.fstart = new Date().getTime();
+          player.jstart = new Date().getTime() - 1;
+          player.fstart = new Date().getTime() - 1;
           player.y0 = player.y;
           player.jumping = true;        
           player.falling = true;	
@@ -827,3 +911,7 @@ function showDebug()
 
 
 renderplayer();
+
+
+
+
