@@ -37,7 +37,17 @@ function checkTouchingBool(n1, n2)
       &&  o1.y              <= (o2.y + o2.height)         // o1 top > o2 bottom
       && (o1.y + o1.height) >=  o2.y                      // o1 bottom < o2 top
       )
-      { return true;  }  
+      { 
+        if (o1.clip && o2.clip)
+        {
+          return true;  
+        }
+        else
+        {
+          specialTouch(n1,n2);
+          return false;
+        }
+      }  
       else
       { return false; }
 }
@@ -63,13 +73,8 @@ function touch(n1, n2)
   
   if (o1.hard > 0 && o2.hard > 0)
   {    
-    //left, down, right, up
-    if (o1.id == "PLAYER" && o2.id == "BOX")
-    {
-      env.log ("assessing touching of " + o1.id + " & " + o2.id);
-    }    
+    //left, down, right, up    
     var touching = true;
-    var overlapping = false;
     var overlapCount = 0;
     var moved = false;
     var gap = 30;
@@ -80,10 +85,6 @@ function touch(n1, n2)
     
     var ddx = o1.dx - o2.dx;
     var ddy = o1.dy - o2.dy;
-    if (o1.id == "PLAYER" && o2.id == "BOX")
-    {
-      env.log ("TOUCHING: Player DDX vs BOX is " + ddx);
-    }
     
     ///////
     //Detecting touching, and marking as such
@@ -97,15 +98,9 @@ function touch(n1, n2)
         && (o1.y + o1.height) >  o2.y)  
     { 
       diff[0] = (o2.x + o2.width) - o1.x; 
-      if (o1.id=="PLAYER" ) 
-      {
-        env.log("marking player (" + o1.y + "," + o1.x + ") touching_left (0) as true, against " + o2.id);
-        env.log ("o2.y: " + o2.y);
-      }
       
       o1.touching[0] = true;
-      o2.touching[2] = true;
-      //alert("touching left");
+      o2.touching[2] = true;      
     }
     
     // o1 bottom & o2 top
@@ -117,11 +112,6 @@ function touch(n1, n2)
     )        
     { 
       diff[1] = (o1.y + o1.height) - o2.y; 
-      if (o1.id=="PLAYER" && o2.id == "BOX") 
-      {
-        env.log("marking player (" + o1.y + "," + o1.x + ") touching_bottom (1) as true, against " + o2.id);
-        env.log ("o2.y: " + o2.y);
-      }
       
       o1.touching[1] = true;         
       o2.touching[3] = true;    
@@ -134,7 +124,6 @@ function touch(n1, n2)
         && (o1.y + o1.height) >  o2.y)                      // o1 bottom < o2 top)    
     { 
       diff[2] = (o1.x + o1.width) - o2.x; 
-      env.log("marking player (" + o1.y + "," + o1.x + ") touching_right (2) as true");
       
       o1.touching[2] = true;
       o2.touching[0] = true;
@@ -175,69 +164,42 @@ function touch(n1, n2)
     
     var fixed = false;  //This is used in unlikely case that there's an identical overlap in 2 directions
    
-    if (overlapCount >= 1)
-    {
-      overlapping = true;      
-    }
-    else
-    {
-      fixed = true;//if only one is overlapping then it's not really overlapping
-    }
+    if (overlapCount == 0)
+    { fixed = true; }
          
     var min = Math.min.apply(null, diff); //max is now the highest value of the differences
     
     
     
-    
     //Should now fix the SMALLEST overlap (i.e. where an overlap has just occured)
     
-    
-    //DEBUGGING
-    if (o1.id == "PLAYER" && o2.id == "FLOOR" ) 
-    {
-      for (var i = 0; i < 4; i++)
-      { env.log(i + ":" + diff[i]); }
-      env.log("overlapCount: " + overlapCount + ", fixed:" + fixed + ", min:" + min);     
-    }
 
-     if (diff[0] == min && !fixed)
+    if (diff[0] == min && !fixed)
     {
         // o1 left & o2 right
-        env.log(desc[0]);
-        env.log("activing per[0] action");
-                     
         o1.x = (o2.x + o2.width);
         o1.x0 = o1.x;
         o1.xstart = new Date().getTime();                  
-        if (playerPresent) {player.jumpCount = 1;}
+        if (playerPresent) {player.jumpCount--;}
         o1.touching[0] = true;        
         fixed = true;
     }
     if (diff[1] == min && !fixed)
     {
-        // o1 bottom & o2 top        
-        env.log(desc[1]);       
-        env.log("activing per[1] action");
+        // o1 bottom & o2 top                
         o1.y = (o2.y - o1.height) ;         
         o1.touching[1] = true;        
         o1.down = false;
         o1.up = false;
-        env.log("pushed o1 ('" + o1.id + "') upwards")
         
         fixed = true;
     }
     if (diff[2] == min && !fixed)
     {
-      // o1 right & o2 left
-      if (o1.id == "PLAYER")
-      {
-        env.log ("marking player right [2] as true");
-      }
-      env.log(desc[2]);
-      env.log("activing per[2] action");
+      // o1 right & o2 left      
       o1.x = (o2.x - o1.width) ;      
       o1.x0 = o1.x;
-      if (playerPresent) {player.jumpCount = 1;}
+      if (playerPresent) {player.jumpCount--;}
       o1.xstart = new Date().getTime();
       o1.touching[2] = true;      
       
@@ -246,22 +208,13 @@ function touch(n1, n2)
     if (diff[3] == min && !fixed)
     {
       // o1 top & o2 bottom
-      env.log(desc[3]);
-      env.log("activing per[3] action");
+      
       o1.touching[3] = true;      
       //TODO: pushing something upwards
       fixed = true;
     }
     
-    
-    
-    
-    // __ backup1.txt was in here
-    
-    //log("player.touching[0] (left) is now " + player.touching[0]);
-    //log("player.touching[1] (down) is now " + player.touching[1]);
-    //log("player.touching[2] (right)is now " + player.touching[2]);
-    //log("player.touching[3] (top)  is now " + player.touching[3]);
+
     //Write back to the env.objects array
     if (switched)
     {
@@ -273,11 +226,21 @@ function touch(n1, n2)
       env.objects[n1] = o1;
       env.objects[n2] = o2;
     }    
-    
-    
+       
   }
   
+  specialTouch(n1,n2);    // Check if either object is special
   
+}
+
+
+/////////////////////////////////////
+//Special scenarios (even if noclip)
+/////////////////////////////////////
+function specialTouch(n1,n2)
+{
+  var o1 = env.objects[n1];
+  var o2 = env.objects[n2];
   
   //Special touching situations
   if (o1.id == "PLAYER" && o2.deadly == true || o2.id == "PLAYER" && o1.deadly == true)
@@ -285,10 +248,10 @@ function touch(n1, n2)
     //Player should die
     die();    
   }
-  
-  if (o1.id == "PLAYER")
+
+  if (o1.id == "PLAYER" && o2.exit == true || o2.id == "PLAYER" && o1.exit == true)
   {
-    env.log("TOUCHING: end of touching, player_touching_left is " + env.objects[env.playerID].touching[0]);
+    //end of level
+    completeLevel();
   }
-  
 }

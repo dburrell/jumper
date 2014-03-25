@@ -1,10 +1,11 @@
 
-//Add a random object
+//Add enemy
 var a = newObj();
+a.hard = 1;
 a.y = 480;
 a.x = 300;
 a.width= 20;
-a.deadly = true;
+a.deadly = false;
 addObj(a);
 
 
@@ -39,3 +40,18 @@ d.height = 10;
 d.hasMass = false;
 d.color = "#FA5";
 addObj(d);
+
+
+//Add an exit door
+var exit = newObj();
+exit.id = "EXIT";
+exit.exit = true;
+exit.clip = false;
+exit.y = 480;
+exit.x = 10;
+exit.height = 20;
+exit.width= 20;
+exit.color = "#0F0";
+exit.deadly = false;
+exit.hasMass = false;
+addObj(exit);

@@ -4,7 +4,7 @@ function die()
   alert("PLAYER DIED");
 }
 
-function complete()
+function completeLevel()
 {
   env.gameOver = true;
   alert("LEVEL COMPLETE");
