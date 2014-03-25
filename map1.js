@@ -1,9 +1,12 @@
 
+player.img = "man.png";
+
 //Add enemy
 var a = newObj();
 a.y = 480;
 a.x = 300;
 a.width= 20;
+a.img = "poison.png";
 a.deadly = true;
 addObj(a);
 
@@ -42,17 +45,18 @@ addObj(d);
 
 
 //Add an exit door
-var exit = newObj();
-exit.id = "EXIT";
-exit.exit = true;
-exit.clip = false;
-exit.y = 480;
-exit.x = 10;
-exit.height = 20;
-exit.width= 20;
-exit.color = "#0F0";
-exit.deadly = false;
-exit.hasMass = false;
+var exit      = newObj();
+exit.id       = "EXIT";
+exit.exit     = true;
+exit.clip     = false;
+exit.y        = 470;
+exit.x        = 10;
+exit.height   = 30;
+exit.width    = 30;
+//exit.color = "#0F0";
+exit.img      = 'portal.png';
+exit.deadly   = false;
+exit.hasMass  = false;
 addObj(exit);
 
 

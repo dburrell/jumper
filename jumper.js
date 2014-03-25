@@ -83,14 +83,14 @@ var renderplayer = function()
       {           
         var img = images[i];
       
-        var pattern = context.createPattern(img, 'repeat');
+        //var pattern = context.createPattern(img, 'repeat');
 
-        context.rect(o.x, o.y, o.width, o.height);
-        context.fillStyle = pattern;
-        context.fill();
+        //context.rect(o.x, o.y, o.width, o.height);
+        //context.fillStyle = pattern;
+        //context.fill();
         
-        //var img = images[i];
-        //context.drawImage(img, o.x, o.y, o.width, o.height);       
+        var img = images[i];
+        context.drawImage(img, o.x, o.y, o.width, o.height);       
       }
       
       
