@@ -17,11 +17,11 @@ var player =
   left: false,
   up: false,
   down: true,
-  speed: 700,   //should be 700
+  speed: 500,   //should be 700
   color:"#000",  
   jumpCount:0,
   maxJumps:2,
-  
+  climber: false,
   jumping:false,      
   jumpPower:700,
   j0:800,

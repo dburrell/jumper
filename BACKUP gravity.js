@@ -10,7 +10,7 @@ function gravity(now)
   for (var i = 0; i < env.objects.length; i++)
   {
     ////////////////////////////////
-    //Grab the object in question - STAYS
+    //Grab the object in question
     ////////////////////////////////
     var o = env.objects[i];       
     var fall = true;
@@ -19,7 +19,7 @@ function gravity(now)
     
     
     ////////////////////////////////
-    //Some debugging - STAYS
+    //Some debugging
     ////////////////////////////////
     if (o.id== "PLAYER")
     {
@@ -31,7 +31,7 @@ function gravity(now)
     
     
     ////////////////////////////////
-    //can't fall through an object - STAYS
+    //can't fall through an object
     ////////////////////////////////
     if (!o.up && o.touching[1]) 
     {             
@@ -49,7 +49,7 @@ function gravity(now)
     }   
   
     ////////////////////////////////
-    //Out of bounds catcher - STAYS
+    //Out of bounds catcher
     ////////////////////////////////
     if (o.hasMass == false || o.y > env.height)
     { 
@@ -70,17 +70,12 @@ function gravity(now)
       //DY adjustments from jumping
       if (player.jumping )
       { 
-      
-        ////This was the old version using a decreasing jumping power
-        //var duration = (now - player.jstart);  
-        //var jumpTime = 500;
-        //var frac = Math.min(1,duration/(jumpTime));          // *2 because half way gravity takes over
-        //var jumpPower = player.j0 * (1-frac);            
-        //var d = (duration/1000)*(jumpPower);
+        var duration = (now - player.jstart);  
+        var jumpTime = 500;
+        var frac = Math.min(1,duration/(jumpTime));          // *2 because half way gravity takes over
+        var jumpPower = player.j0 * (1-frac);    
         
-        var duration = (now - player.jstart)/1000;  
-        var d = player.jumpPower;
-        d = d * duration;
+        var d = (duration/1000)*(jumpPower);
         o.dy -= d;           
         
         if (o.id== "PLAYER") { env.log("Gravity: Jumping removes " + d + " from o.dy");}
@@ -90,7 +85,7 @@ function gravity(now)
     
     
     ////////////////////////////////
-    //Start falling? - STAYS
+    //Start falling?
     ////////////////////////////////
     if (o.falling == false && fall)                   //Should be falling but isn't yet
     {
@@ -111,20 +106,13 @@ function gravity(now)
       {     
         env.somethingFalling = true;
         var duration = (now - o.fstart)/1000;    
-        //o.dy += duration * env.gravity;        <- was previous calculation based on constant gravity
-        
-        var a = 2000;                 // acceleration
-        var t = duration;             // t
-        var t2 = t * t;               // t squared
-        var startV = 200;              // starting velocity
-        
-        o.dy += (startV*t) + ((a*t2)/2);
+        o.dy += duration * env.gravity;        
       } 
       
       
       
       ////////////////////////////////
-      //Apply to object - STAYS
+      //Apply to object
       ////////////////////////////////
       o.up = false;
       o.down = false;
@@ -141,7 +129,7 @@ function gravity(now)
            
       
       ////////////////////////////////
-      //Move object vertically - STAYS
+      //Move object vertically
       ////////////////////////////////
       o.y = o.y0 + o.dy;      
     }
